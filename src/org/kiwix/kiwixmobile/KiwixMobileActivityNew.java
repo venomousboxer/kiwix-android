@@ -1,22 +1,3 @@
-/*
- * Copyright 2013 Rashiq Ahmad <rashiq.z@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU  General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301, USA.
- */
-
 package org.kiwix.kiwixmobile;
 
 import android.Manifest;
@@ -79,8 +60,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import javax.inject.Inject;
-import okhttp3.OkHttpClient;
 import org.json.JSONArray;
 import org.kiwix.kiwixmobile.database.BookmarksDao;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
@@ -104,57 +83,39 @@ import org.kiwix.kiwixmobile.views.web.ToolbarScrollingKiwixWebView;
 import org.kiwix.kiwixmobile.views.web.ToolbarStaticKiwixWebView;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
-import static org.kiwix.kiwixmobile.TableDrawerAdapter.DocumentSection;
-import static org.kiwix.kiwixmobile.TableDrawerAdapter.TableClickListener;
+import static org.kiwix.kiwixmobile.constants.ActivityRequest.REQUEST_BOOKMARK_CHOSEN;
+import static org.kiwix.kiwixmobile.constants.ActivityRequest.REQUEST_FILE_SEARCH;
+import static org.kiwix.kiwixmobile.constants.ActivityRequest.REQUEST_FILE_SELECT;
+import static org.kiwix.kiwixmobile.constants.ActivityRequest.REQUEST_PREFERENCES;
+import static org.kiwix.kiwixmobile.constants.ActivityRequest.REQUEST_STORAGE_PERMISSION;
 import static org.kiwix.kiwixmobile.constants.ActivityRequest.RESULT_HISTORY_CLEARED;
 import static org.kiwix.kiwixmobile.constants.ActivityRequest.RESULT_RESTART;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_BOOKMARK_CONTENTS;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_CHOSE_TITLE;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_CHOSE_URL;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_FILE_SEARCHED;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_SEARCH;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_STAR;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_VOICE;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_ZIM_FILE;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_BACK_TO_TOP;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CURRENT_ARTICLES;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CURRENT_FILE;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CURRENT_POSITIONS;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CURRENT_TAB;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_FULLSCREEN;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_HIDE_TOOLBAR;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_IS_FIRST_RUN;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_KIWIX_MOBILE;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_NEW_TAB_BACKGROUND;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_NIGHT_MODE;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_ZOOM;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_ZOOM_ENABLED;
 import static org.kiwix.kiwixmobile.utils.StyleUtils.dialogStyle;
 
-public class KiwixMobileActivity extends BaseActivity implements WebViewCallback {
-
-  public static final int REQUEST_FILE_SEARCH = 1236;
-
-  public static final int REQUEST_STORAGE_PERMISSION = 1;
-
-  private static final int REQUEST_FILE_SELECT = 1234;
-
-  private static final int REQUEST_PREFERENCES = 1235;
-
-  private static final int REQUEST_BOOKMARK_CHOSEN = 1;
+public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallback {
 
   public static final String TAG_KIWIX = "kiwix";
-
-  public static final String EXTRA_FILE_SEARCHED = "searchedarticle";
-
-  private static final String PREF_CURRENT_FILE = "currentzimfile";
-
-  private static final String PREF_CURRENT_ARTICLES = "currentarticles";
-
-  private static final String PREF_CURRENT_POSITIONS = "currentpositions";
-
-  private static final String PREF_CURRENT_TAB = "currenttab";
-
-  public static final String PREF_NIGHT_MODE = "pref_nightmode";
-
-  private static final String PREF_KIWIX_MOBILE = "kiwix-mobile";
-
-  private static final String PREF_BACK_TO_TOP = "pref_backtotop";
-
-  private static final String PREF_HIDE_TOOLBAR = "pref_hidetoolbar";
-
-  private static final String PREF_ZOOM = "pref_zoom_slider";
-
-  private static final String PREF_ZOOM_ENABLED = "pref_zoom_enabled";
-
-  private static final String PREF_FULLSCREEN = "pref_fullscreen";
-
-  private static final String PREF_NEW_TAB_BACKGROUND = "pref_newtab_background";
-
-  public static final String PREF_FULL_TEXT_SEARCH = "pref_full_text_search";
-
-  public static final String PREF_STORAGE = "pref_selected_storage";
-
-  public static final String PREF_STORAGE_TITLE = "pref_selected_title";
 
   public static final String contactEmailAddress = "android@kiwix.org";
 
@@ -258,9 +219,6 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   @BindView(R.id.action_forward) View tabForwardButtonContainer;
 
-  @Inject OkHttpClient okHttpClient;
-
-
   @Override
   public void onActionModeStarted(ActionMode mode) {
     if (actionMode == null) {
@@ -298,12 +256,13 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
+
+    super.onCreate(savedInstanceState);
     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
     nightMode = sharedPreferences.getBoolean(PREF_NIGHT_MODE, false);
     if (nightMode) {
       setTheme(R.style.AppTheme_Night);
     }
-    super.onCreate(savedInstanceState);
     handleLocaleCheck();
     setContentView(R.layout.main);
     ButterKnife.bind(this);
@@ -339,7 +298,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
     TableDrawerAdapter tableDrawerAdapter = new TableDrawerAdapter();
     tableDrawerRight.setAdapter(tableDrawerAdapter);
-    tableDrawerAdapter.setTableClickListener(new TableClickListener() {
+    tableDrawerAdapter.setTableClickListener(new TableDrawerAdapter.TableClickListener() {
       @Override public void onHeaderClick(View view) {
         getCurrentWebView().setScrollY(0);
         drawerLayout.closeDrawer(GravityCompat.END);
@@ -366,7 +325,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       }
     });
 
-    ActionBarDrawerToggle drawerToggle = new KiwixActionBarDrawerToggle(this, drawerLayout, toolbar);
+    ActionBarDrawerToggle drawerToggle =
+        new KiwixActionBarDrawerToggle(this, drawerLayout, toolbar);
 
     drawerLayout.addDrawerListener(drawerToggle);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -377,7 +337,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     setUpTTS();
     documentParser = new DocumentParser(new DocumentParser.SectionsListener() {
       @Override
-      public void sectionsLoaded(String title, List<DocumentSection> sections) {
+      public void sectionsLoaded(String title, List<TableDrawerAdapter.DocumentSection> sections) {
         documentSections.addAll(sections);
         tableDrawerAdapter.setTitle(title);
         tableDrawerAdapter.setSections(documentSections);
@@ -417,7 +377,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       Uri uri = Uri.fromFile(file);
 
       finish();
-      Intent zimFile = new Intent(KiwixMobileActivity.this, KiwixMobileActivity.class);
+      Intent zimFile = new Intent(KiwixMobileActivityNew.this, KiwixMobileActivity.class);
       zimFile.setData(uri);
       startActivity(zimFile);
     }
@@ -433,7 +393,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   private void checkForRateDialog() {
     settings = PreferenceManager.getDefaultSharedPreferences(this);
-    isFirstRun = settings.getBoolean("isFirstRun", true);
+    isFirstRun = settings.getBoolean(PREF_IS_FIRST_RUN, true);
     visitCounterPref = new RateAppCounter(this);
     tempVisitCount = visitCounterPref.getCount();
     ++tempVisitCount;
@@ -481,10 +441,10 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   private void goToSearch(boolean isVoice) {
     final String zimFile = ZimContentProvider.getZimFile();
     saveTabStates();
-    Intent i = new Intent(KiwixMobileActivity.this, SearchActivity.class);
-    i.putExtra("zimFile", zimFile);
+    Intent i = new Intent(KiwixMobileActivityNew.this, SearchActivity.class);
+    i.putExtra(EXTRA_ZIM_FILE, zimFile);
     if (isVoice) {
-      i.putExtra("isWidgetVoice", true);
+      i.putExtra(EXTRA_IS_WIDGET_VOICE, true);
     }
     startActivityForResult(i, REQUEST_FILE_SEARCH);
   }
@@ -592,18 +552,22 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   private void shrinkDrawers() {
-    ViewGroup.MarginLayoutParams leftLayoutMargins = (ViewGroup.MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams(),
-        rightLayoutMargins = (ViewGroup.MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
+    ViewGroup.MarginLayoutParams leftLayoutMargins =
+        (ViewGroup.MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams(),
+        rightLayoutMargins =
+            (ViewGroup.MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
 
-    leftLayoutMargins.topMargin = DimenUtils.getToolbarHeight(KiwixMobileActivity.this);
-    rightLayoutMargins.topMargin = DimenUtils.getToolbarHeight(KiwixMobileActivity.this);
+    leftLayoutMargins.topMargin = DimenUtils.getToolbarHeight(KiwixMobileActivityNew.this);
+    rightLayoutMargins.topMargin = DimenUtils.getToolbarHeight(KiwixMobileActivityNew.this);
     tabDrawerLeftContainer.setLayoutParams(leftLayoutMargins);
     tableDrawerRightContainer.setLayoutParams(rightLayoutMargins);
   }
 
   private void expandDrawers() {
-    ViewGroup.MarginLayoutParams leftLayoutMargins = (ViewGroup.MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams(),
-        rightLayoutMargins = (ViewGroup.MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
+    ViewGroup.MarginLayoutParams leftLayoutMargins =
+        (ViewGroup.MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams(),
+        rightLayoutMargins =
+            (ViewGroup.MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
     leftLayoutMargins.topMargin = 0;
     rightLayoutMargins.topMargin = 0;
     tabDrawerLeftContainer.setLayoutParams(leftLayoutMargins);
@@ -614,7 +578,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     AttributeSet attrs = StyleUtils.getAttributes(this, R.xml.webview);
     KiwixWebView webView;
     if (isHideToolbar) {
-      webView = new ToolbarScrollingKiwixWebView(KiwixMobileActivity.this, this, toolbarContainer, attrs);
+      webView =
+          new ToolbarScrollingKiwixWebView(KiwixMobileActivityNew.this, this, toolbarContainer, attrs);
       ((ToolbarScrollingKiwixWebView) webView).setOnToolbarVisibilityChangeListener(
           new ToolbarScrollingKiwixWebView.OnToolbarVisibilityChangeListener() {
             @Override
@@ -629,7 +594,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
           }
       );
     } else {
-      webView = new ToolbarStaticKiwixWebView(KiwixMobileActivity.this, this, toolbarContainer, attrs);
+      webView =
+          new ToolbarStaticKiwixWebView(KiwixMobileActivityNew.this, this, toolbarContainer, attrs);
     }
     webView.loadUrl(url);
     webView.loadPrefs();
@@ -800,7 +766,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   private void goToBookmarks() {
     saveTabStates();
     Intent intentBookmarks = new Intent(getBaseContext(), BookmarksActivity.class);
-    intentBookmarks.putExtra("bookmark_contents", bookmarks);
+    intentBookmarks.putExtra(EXTRA_BOOKMARK_CONTENTS, bookmarks);
     startActivityForResult(intentBookmarks, REQUEST_BOOKMARK_CHOSEN);
   }
 
@@ -868,7 +834,6 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     }
   }
 
-
   public boolean openZimFile(File file, boolean clearHistory) {
     if (file.canRead() || Build.VERSION.SDK_INT < 19 || (Constants.IS_CUSTOM_APP
         && Build.VERSION.SDK_INT != 23)) {
@@ -889,7 +854,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
           //Bookmarks
           bookmarks = new ArrayList<>();
           bookmarksDao = new BookmarksDao(KiwixDatabase.getInstance(this));
-          bookmarks = bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
+          bookmarks =
+              bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
 
           openMainPage();
           refreshBookmarks();
@@ -911,7 +877,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       this.file = file;
       ActivityCompat.requestPermissions(this,
           new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
-          KiwixMobileActivity.REQUEST_STORAGE_PERMISSION);
+          REQUEST_STORAGE_PERMISSION);
       if (Constants.IS_CUSTOM_APP && Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
         Toast.makeText(this, getResources().getString(R.string.request_storage_custom), Toast.LENGTH_LONG)
             .show();
@@ -927,11 +893,11 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   public void onRequestPermissionsResult(int requestCode,
       String permissions[], int[] grantResults) {
     switch (requestCode) {
-      case KiwixMobileActivity.REQUEST_STORAGE_PERMISSION: {
+      case REQUEST_STORAGE_PERMISSION: {
         if (grantResults.length > 0
             && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
           finish();
-          Intent newZimFile = new Intent(KiwixMobileActivity.this, KiwixMobileActivity.class);
+          Intent newZimFile = new Intent(KiwixMobileActivityNew.this, KiwixMobileActivity.class);
           newZimFile.setData(Uri.fromFile(file));
           startActivity(newZimFile);
         } else {
@@ -954,7 +920,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   // Create a correctly colored title for menu items
-  private SpannableString createMenuItem(String title){
+  private SpannableString createMenuItem(String title) {
     SpannableString s = new SpannableString(title);
     if (nightMode) {
       s.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), 0);
@@ -965,7 +931,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   // Create a correctly colored title for menu items
-  private SpannableString createMenuText(String title){
+  private SpannableString createMenuText(String title) {
     SpannableString s = new SpannableString(title);
     s.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), 0);
     return s;
@@ -985,8 +951,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       searchItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
         @Override
         public boolean onMenuItemClick(MenuItem item) {
-          Intent i = new Intent(KiwixMobileActivity.this, SearchActivity.class);
-          i.putExtra("zimFile", zimFile);
+          Intent i = new Intent(KiwixMobileActivityNew.this, SearchActivity.class);
+          i.putExtra(EXTRA_ZIM_FILE, zimFile);
           startActivityForResult(i, REQUEST_FILE_SEARCH);
           overridePendingTransition(0, 0);
           return true;
@@ -996,8 +962,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       toolbar.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-          Intent i = new Intent(KiwixMobileActivity.this, SearchActivity.class);
-          i.putExtra("zimFile", zimFile);
+          Intent i = new Intent(KiwixMobileActivityNew.this, SearchActivity.class);
+          i.putExtra(EXTRA_ZIM_FILE, zimFile);
           startActivityForResult(i, REQUEST_FILE_SEARCH);
           overridePendingTransition(0, 0);
         }
@@ -1134,14 +1100,14 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       if (intent.getAction().equals(Intent.ACTION_PROCESS_TEXT)) {
         final String zimFile = ZimContentProvider.getZimFile();
         saveTabStates();
-        Intent i = new Intent(KiwixMobileActivity.this, SearchActivity.class);
-        i.putExtra("zimFile", zimFile);
+        Intent i = new Intent(KiwixMobileActivityNew.this, SearchActivity.class);
+        i.putExtra(EXTRA_ZIM_FILE, zimFile);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
           i.putExtra(Intent.EXTRA_PROCESS_TEXT, intent.getStringExtra(Intent.EXTRA_PROCESS_TEXT));
         }
         intent.setAction("");
         startActivityForResult(i, REQUEST_FILE_SEARCH);
-      } else if (intent.getAction().equals(KiwixSearchWidget.TEXT_CLICKED)){
+      } else if (intent.getAction().equals(KiwixSearchWidget.TEXT_CLICKED)) {
         intent.setAction("");
         goToSearch(false);
       } else if (intent.getAction().equals(KiwixSearchWidget.STAR_CLICKED)) {
@@ -1151,7 +1117,6 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
         intent.setAction("");
         goToSearch(true);
       }
-
     }
     updateWidgets(this);
   }
@@ -1159,9 +1124,9 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   @Override
   protected void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
-    boolean isWidgetSearch = intent.getBooleanExtra("isWidgetSearch", false);
-    boolean isWidgetVoiceSearch = intent.getBooleanExtra("isWidgetVoice", false);
-    boolean isWidgetStar = intent.getBooleanExtra("isWidgetStar", false);
+    boolean isWidgetSearch = intent.getBooleanExtra(EXTRA_IS_WIDGET_SEARCH, false);
+    boolean isWidgetVoiceSearch = intent.getBooleanExtra(EXTRA_IS_WIDGET_VOICE, false);
+    boolean isWidgetStar = intent.getBooleanExtra(EXTRA_IS_WIDGET_STAR, false);
 
     if (isWidgetStar && ZimContentProvider.getId() != null) {
       goToBookmarks();
@@ -1179,13 +1144,15 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       bookmarks.clear();
     }
     if (bookmarksDao != null) {
-      bookmarks = bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
+      bookmarks =
+          bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
     }
   }
 
   // TODO: change saving bookbark by zim name not id
   private void saveBookmark(String articleUrl, String articleTitle) {
-    bookmarksDao.saveBookmark(articleUrl, articleTitle, ZimContentProvider.getId(), ZimContentProvider.getName());
+    bookmarksDao.saveBookmark(articleUrl, articleTitle, ZimContentProvider.getId(), ZimContentProvider
+        .getName());
     refreshBookmarks();
   }
 
@@ -1270,7 +1237,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     backToTopButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        KiwixMobileActivity.this.runOnUiThread(new Runnable() {
+        KiwixMobileActivityNew.this.runOnUiThread(new Runnable() {
           @Override
           public void run() {
             getCurrentWebView().pageUp(true);
@@ -1301,7 +1268,6 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     if (menu != null) {
       MenuItem random = menu.findItem(R.id.menu_randomarticle);
       MenuItem home = menu.findItem(R.id.menu_home);
-      MenuItem openFile = menu.findItem(R.id.menu_openfile);
       if (getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE) {
         random.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         home.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
@@ -1345,7 +1311,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
           }
 
           finish();
-          Intent zimFile = new Intent(KiwixMobileActivity.this, KiwixMobileActivity.class);
+          Intent zimFile = new Intent(KiwixMobileActivityNew.this, KiwixMobileActivity.class);
           zimFile.setData(uri);
           startActivity(zimFile);
         }
@@ -1360,7 +1326,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       case REQUEST_PREFERENCES:
         if (resultCode == RESULT_RESTART) {
           finish();
-          startActivity(new Intent(KiwixMobileActivity.this, KiwixMobileActivity.class));
+          startActivity(new Intent(KiwixMobileActivityNew.this, KiwixMobileActivity.class));
         }
         if (resultCode == RESULT_HISTORY_CLEARED) {
           mWebViews.clear();
@@ -1377,17 +1343,18 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
           //Bookmarks
           bookmarksDao = new BookmarksDao(KiwixDatabase.getInstance(this));
-          bookmarks = bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
+          bookmarks =
+              bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
 
           if (itemClicked) {
             String bookmarkChosen;
-            if (data.getStringExtra("choseXURL") != null) {
-              bookmarkChosen = data.getStringExtra("choseXURL");
+            if (data.getStringExtra(EXTRA_CHOSE_URL) != null) {
+              bookmarkChosen = data.getStringExtra(EXTRA_CHOSE_URL);
               newTab();
               getCurrentWebView().loadUrl(bookmarkChosen);
             } else {
               newTab();
-              bookmarkChosen = data.getStringExtra("choseXTitle");
+              bookmarkChosen = data.getStringExtra(EXTRA_CHOSE_TITLE);
               openArticleFromBookmarkTitle(bookmarkChosen);
             }
           }
@@ -1430,7 +1397,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     refreshBookmarkSymbol(menu);
     refreshNavigationButtons();
 
-    if (getCurrentWebView().getUrl() == null || getCurrentWebView().getUrl().equals("file:///android_res/raw/help.html")) {
+    if (getCurrentWebView().getUrl() == null || getCurrentWebView().getUrl()
+        .equals("file:///android_res/raw/help.html")) {
       menu.findItem(R.id.menu_read_aloud).setVisible(false);
     } else {
       menu.findItem(R.id.menu_read_aloud).setVisible(true);
@@ -1442,21 +1410,24 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   public void refreshBookmarkSymbol(Menu menu) { // Checks if current webview is in bookmarks array
     if (bookmarks == null || bookmarks.size() == 0) {
       bookmarksDao = new BookmarksDao(KiwixDatabase.getInstance(this));
-      bookmarks = bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
+      bookmarks =
+          bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
     }
     if (menu.findItem(R.id.menu_bookmarks) != null &&
         getCurrentWebView().getUrl() != null &&
         ZimContentProvider.getId() != null &&
         !getCurrentWebView().getUrl().equals("file:///android_res/raw/help.html")) {
       menu.findItem(R.id.menu_bookmarks)
-              .setEnabled(true)
-              .setIcon(bookmarks.contains(getCurrentWebView().getUrl()) ? R.drawable.action_bookmark_active : R.drawable.action_bookmark)
-              .getIcon().setAlpha(255);
+          .setEnabled(true)
+          .setIcon(
+              bookmarks.contains(getCurrentWebView().getUrl()) ? R.drawable.action_bookmark_active
+                  : R.drawable.action_bookmark)
+          .getIcon().setAlpha(255);
     } else {
       menu.findItem(R.id.menu_bookmarks)
-              .setEnabled(false)
-              .setIcon(R.drawable.action_bookmark)
-              .getIcon().setAlpha(130);
+          .setEnabled(false)
+          .setIcon(R.drawable.action_bookmark)
+          .getIcon().setAlpha(130);
     }
   }
 
@@ -1530,7 +1501,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   public void selectSettings() {
     final String zimFile = ZimContentProvider.getZimFile();
     Intent i = new Intent(this, KiwixSettingsActivity.class);
-    i.putExtra("zim_file", zimFile);
+    i.putExtra(EXTRA_ZIM_FILE, zimFile);
     startActivityForResult(i, REQUEST_PREFERENCES);
   }
 
@@ -1583,10 +1554,12 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   private void manageExternalLaunchAndRestoringViewState() {
 
     if (getIntent().getData() != null) {
-      String filePath = FileUtils.getLocalFilePathByUri(getApplicationContext(), getIntent().getData());
+      String filePath =
+          FileUtils.getLocalFilePathByUri(getApplicationContext(), getIntent().getData());
 
       if (filePath == null) {
-        Toast.makeText(KiwixMobileActivity.this, getString(R.string.error_filenotfound), Toast.LENGTH_LONG).show();
+        Toast.makeText(KiwixMobileActivityNew.this, getString(R.string.error_filenotfound), Toast.LENGTH_LONG)
+            .show();
         return;
       }
 
@@ -1647,7 +1620,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
           if (!FileUtils.doesFileExist(filePath, Constants.CUSTOM_APP_ZIM_FILE_SIZE, false)) {
 
-            AlertDialog.Builder zimFileMissingBuilder = new AlertDialog.Builder(this, dialogStyle());
+            AlertDialog.Builder zimFileMissingBuilder =
+                new AlertDialog.Builder(this, dialogStyle());
             zimFileMissingBuilder.setTitle(R.string.app_name);
             zimFileMissingBuilder.setMessage(R.string.customapp_missing_content);
             zimFileMissingBuilder.setIcon(R.mipmap.kiwix_icon);
@@ -1730,19 +1704,19 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     tabDrawerAdapter.notifyDataSetChanged();
   }
 
-
   @Override public void webViewPageChanged(int page, int maxPages) {
     if (isBackToTopEnabled) {
       if (getCurrentWebView().getScrollY() > 200) {
-        if (backToTopButton.getVisibility() == View.INVISIBLE && TTSControls.getVisibility() == View.GONE ) {
+        if (backToTopButton.getVisibility() == View.INVISIBLE
+            && TTSControls.getVisibility() == View.GONE) {
           backToTopButton.setText(R.string.button_backtotop);
           backToTopButton.setVisibility(View.VISIBLE);
 
           backToTopButton.startAnimation(
-              AnimationUtils.loadAnimation(KiwixMobileActivity.this, android.R.anim.fade_in));
+              AnimationUtils.loadAnimation(KiwixMobileActivityNew.this, android.R.anim.fade_in));
           backToTopButton.setVisibility(View.INVISIBLE);
           Animation fadeAnimation =
-              AnimationUtils.loadAnimation(KiwixMobileActivity.this, android.R.anim.fade_out);
+              AnimationUtils.loadAnimation(KiwixMobileActivityNew.this, android.R.anim.fade_out);
           fadeAnimation.setStartOffset(1200);
           backToTopButton.startAnimation(fadeAnimation);
         }
@@ -1752,7 +1726,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
           backToTopButton.clearAnimation();
           backToTopButton.startAnimation(
-              AnimationUtils.loadAnimation(KiwixMobileActivity.this, android.R.anim.fade_out));
+              AnimationUtils.loadAnimation(KiwixMobileActivityNew.this, android.R.anim.fade_out));
         } else {
           backToTopButton.clearAnimation();
         }
@@ -1773,7 +1747,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     }
 
     if (handleEvent) {
-      AlertDialog.Builder builder = new AlertDialog.Builder(KiwixMobileActivity.this, dialogStyle());
+      AlertDialog.Builder builder =
+          new AlertDialog.Builder(KiwixMobileActivityNew.this, dialogStyle());
 
       builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int id) {

@@ -17,8 +17,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -30,10 +28,8 @@ import java.util.List;
 import java.util.Locale;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
 import org.kiwix.kiwixmobile.database.RecentSearchDao;
-import org.kiwix.kiwixmobile.utils.DimenUtils;
 import org.kiwix.kiwixmobile.views.AutoCompleteAdapter;
 
-import static android.provider.Settings.System.ALWAYS_FINISH_ACTIVITIES;
 import static org.kiwix.kiwixmobile.utils.StyleUtils.dialogStyle;
 
 public class SearchActivity extends AppCompatActivity
@@ -150,11 +146,11 @@ public class SearchActivity extends AppCompatActivity
     int value = Settings.System.getInt(getContentResolver(), Settings.System.ALWAYS_FINISH_ACTIVITIES, 0);
     if (value == 1) {
       Intent i = new Intent(this, KiwixMobileActivity.class);
-      i.putExtra(KiwixMobileActivity.TAG_FILE_SEARCHED, uri);
+      i.putExtra(KiwixMobileActivity.EXTRA_FILE_SEARCHED, uri);
       startActivity(i);
     } else {
       Intent i = new Intent();
-      i.putExtra(KiwixMobileActivity.TAG_FILE_SEARCHED, uri);
+      i.putExtra(KiwixMobileActivity.EXTRA_FILE_SEARCHED, uri);
       setResult(RESULT_OK, i);
       finish();
     }

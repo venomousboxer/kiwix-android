@@ -7,43 +7,34 @@ import org.kiwix.kiwixmobile.di.components.ApplicationComponent;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
+  private Presenter presenter;
 
   @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setupDagger(KiwixApplication.getInstance().getApplicationComponent());
-    //attachPresenter();
-  }
-
-  @Override protected void onStart() {
-    super.onStart();
-    //presenter.onStart();
+    attachPresenter();
   }
 
   @Override protected void onResume() {
     super.onResume();
-    //presenter.onResume();
+    if (presenter != null) presenter.resume();
   }
 
   @Override protected void onPause() {
     super.onPause();
-    //presenter.onPause();
-  }
-
-  @Override protected void onStop() {
-    super.onStop();
-    //presenter.onStop();
+    if (presenter != null) presenter.pause();
   }
 
   @Override protected void onDestroy() {
     super.onDestroy();
-    //presenter.onDestroy();
+    if (presenter != null) presenter.destroy();
   }
-
-  //protected void attachPresenter(Presenter presenter) {
-  //  this.presenter = presenter;
-  //}
 
   protected abstract void setupDagger(ApplicationComponent appComponent);
 
-  //public abstract void attachPresenter();
+  public abstract void attachPresenter();
+
+  protected void attachPresenter(Presenter presenter) {
+    this.presenter = presenter;
+  }
 }
