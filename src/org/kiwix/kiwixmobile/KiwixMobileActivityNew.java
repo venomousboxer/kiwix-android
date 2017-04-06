@@ -40,7 +40,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -97,6 +97,8 @@ import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_FILE_SEARCHED;
 import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_SEARCH;
 import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_STAR;
 import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_VOICE;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_LIBRARY;
+import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_NOTIFICATION_ID;
 import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_ZIM_FILE;
 import static org.kiwix.kiwixmobile.constants.NamedDependency.NAMED_PARSER_JS;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_BACK_TO_TOP;
@@ -168,10 +170,6 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
 
   private KiwixWebView tempForUndo;
 
-  private RateAppCounter visitCounterPref;
-
-  private int tempVisitCount;
-
   private boolean isFirstRun;
 
   private BookmarksDao bookmarksDao;
@@ -179,6 +177,10 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   @Inject @Named(NAMED_PARSER_JS) String parserJS;
 
   @Inject SharedPreferences preferences;
+
+  @Inject RateAppCounter rateAppCounter;
+
+  @Inject LanguageUtils languageUtils;
 
   @BindView(R.id.toolbar) Toolbar toolbar;
 
@@ -257,12 +259,10 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
-
     super.onCreate(savedInstanceState);
     nightMode = preferences.getBoolean(PREF_NIGHT_MODE, false);
-    if (nightMode) {
-      setTheme(R.style.AppTheme_Night);
-    }
+    if (nightMode) setTheme(R.style.AppTheme_Night);
+
     handleLocaleCheck();
     setContentView(R.layout.main);
     ButterKnife.bind(this);
@@ -353,24 +353,24 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
     updateTitle(ZimContentProvider.getZimFileTitle());
 
     Intent i = getIntent();
-    if (i.getBooleanExtra("library", false)) {
+    if (i.getBooleanExtra(EXTRA_LIBRARY, false)) {
       manageZimFiles(2);
     }
     if (i.hasExtra(EXTRA_FILE_SEARCHED)) {
       searchForTitle(i.getStringExtra(EXTRA_FILE_SEARCHED));
       selectTab(mWebViews.size() - 1);
     }
-    if (i.hasExtra("choseXURL")) {
+    if (i.hasExtra(EXTRA_CHOSE_URL)) {
       newTab();
-      getCurrentWebView().loadUrl(i.getStringExtra("choseXURL"));
+      getCurrentWebView().loadUrl(i.getStringExtra(EXTRA_CHOSE_URL));
     }
-    if (i.hasExtra("choseXTitle")) {
+    if (i.hasExtra(EXTRA_CHOSE_TITLE)) {
       newTab();
-      getCurrentWebView().loadUrl(i.getStringExtra("choseXTitle"));
+      getCurrentWebView().loadUrl(i.getStringExtra(EXTRA_CHOSE_TITLE));
     }
-    if (i.hasExtra("zimFile")) {
-      File file = new File(FileUtils.getFileName(i.getStringExtra("zimFile")));
-      LibraryFragment.mService.cancelNotification(i.getIntExtra("notificationID", 0));
+    if (i.hasExtra(EXTRA_ZIM_FILE)) {
+      File file = new File(FileUtils.getFileName(i.getStringExtra(EXTRA_ZIM_FILE)));
+      LibraryFragment.mService.cancelNotification(i.getIntExtra(EXTRA_NOTIFICATION_ID, 0));
       Uri uri = Uri.fromFile(file);
 
       finish();
@@ -390,13 +390,11 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
 
   private void checkForRateDialog() {
     isFirstRun = preferences.getBoolean(PREF_IS_FIRST_RUN, true);
-    visitCounterPref = new RateAppCounter(this);
-    tempVisitCount = visitCounterPref.getCount();
-    ++tempVisitCount;
-    visitCounterPref.setCount(tempVisitCount);
+    int count = rateAppCounter.getCount();
+    rateAppCounter.setCount(++count);
 
-    if (tempVisitCount >= 5
-        && !visitCounterPref.getNoThanksState()
+    if (count >= 5
+        && !rateAppCounter.getNoThanksState()
         && NetworkUtils.isNetworkAvailable(this)) {
       showRateDialog();
     }
@@ -415,22 +413,20 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
         .setTitle(title)
         .setMessage(message)
         .setPositiveButton(positive, (dialog, id) -> {
-          visitCounterPref.setNoThanksState(true);
+          rateAppCounter.setNoThanksState(true);
           goToRateApp();
         })
         .setNegativeButton(negative, (dialog, id) -> {
-          visitCounterPref.setNoThanksState(true);
+          rateAppCounter.setNoThanksState(true);
         })
         .setNeutralButton(neutral, (dialog, id) -> {
-          tempVisitCount = 0;
-          visitCounterPref.setCount(tempVisitCount);
+          rateAppCounter.setCount(0);
         })
         .setIcon(ContextCompat.getDrawable(this, R.mipmap.kiwix_icon))
         .show();
   }
 
   private void setUpToolbar() {
-
     setSupportActionBar(toolbar);
   }
 
@@ -524,7 +520,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   // Reset the Locale and change the font of all TextViews and its subclasses, if necessary
   private void handleLocaleCheck() {
     LanguageUtils.handleLocaleChange(this);
-    new LanguageUtils(this).changeFont(getLayoutInflater());
+    languageUtils.changeFont(getLayoutInflater());
   }
 
   @Override
@@ -548,10 +544,10 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   }
 
   private void shrinkDrawers() {
-    ViewGroup.MarginLayoutParams leftLayoutMargins =
-        (ViewGroup.MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams(),
-        rightLayoutMargins =
-            (ViewGroup.MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
+    MarginLayoutParams leftLayoutMargins =
+        (MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams();
+    MarginLayoutParams rightLayoutMargins =
+        (MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
 
     leftLayoutMargins.topMargin = DimenUtils.getToolbarHeight(KiwixMobileActivityNew.this);
     rightLayoutMargins.topMargin = DimenUtils.getToolbarHeight(KiwixMobileActivityNew.this);
@@ -560,10 +556,10 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   }
 
   private void expandDrawers() {
-    ViewGroup.MarginLayoutParams leftLayoutMargins =
-        (ViewGroup.MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams(),
-        rightLayoutMargins =
-            (ViewGroup.MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
+    MarginLayoutParams leftLayoutMargins =
+        (MarginLayoutParams) tabDrawerLeftContainer.getLayoutParams();
+    MarginLayoutParams rightLayoutMargins =
+        (MarginLayoutParams) tableDrawerRightContainer.getLayoutParams();
     leftLayoutMargins.topMargin = 0;
     rightLayoutMargins.topMargin = 0;
     tabDrawerLeftContainer.setLayoutParams(leftLayoutMargins);

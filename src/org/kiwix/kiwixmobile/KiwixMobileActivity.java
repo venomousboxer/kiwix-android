@@ -434,7 +434,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   private void checkForRateDialog() {
     settings = PreferenceManager.getDefaultSharedPreferences(this);
     isFirstRun = settings.getBoolean("isFirstRun", true);
-    visitCounterPref = new RateAppCounter(this);
+    //visitCounterPref = new RateAppCounter();
     tempVisitCount = visitCounterPref.getCount();
     ++tempVisitCount;
     visitCounterPref.setCount(tempVisitCount);

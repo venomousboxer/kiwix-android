@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import javax.inject.Inject;
 import org.kiwix.kiwixmobile.utils.files.FileUtils;
 
 public class LanguageUtils {
@@ -53,7 +54,7 @@ public class LanguageUtils {
   private List<String> mLocaleLanguageCodes;
   private Context mContext;
 
-  public LanguageUtils(Context context) {
+  @Inject public LanguageUtils(Context context) {
     mContext = context;
     mLanguageList = new ArrayList<LanguageContainer>();
     mLocaleLanguageCodes = new ArrayList<String>();

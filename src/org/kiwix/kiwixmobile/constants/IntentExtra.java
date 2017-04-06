@@ -16,4 +16,8 @@ public class IntentExtra {
   public static final String EXTRA_CHOSE_URL = "choseXURL";
 
   public static final String EXTRA_CHOSE_TITLE = "choseXTitle";
+
+  public static final String EXTRA_NOTIFICATION_ID = "notificationID";
+
+  public static final String EXTRA_LIBRARY = "library";
 }
