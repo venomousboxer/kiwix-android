@@ -18,7 +18,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -60,6 +59,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import javax.inject.Inject;
+import javax.inject.Named;
 import org.json.JSONArray;
 import org.kiwix.kiwixmobile.database.BookmarksDao;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
@@ -74,7 +75,6 @@ import org.kiwix.kiwixmobile.utils.LanguageUtils;
 import org.kiwix.kiwixmobile.utils.NetworkUtils;
 import org.kiwix.kiwixmobile.utils.RateAppCounter;
 import org.kiwix.kiwixmobile.utils.StyleUtils;
-import org.kiwix.kiwixmobile.utils.files.FileReader;
 import org.kiwix.kiwixmobile.utils.files.FileUtils;
 import org.kiwix.kiwixmobile.views.AnimatedProgressBar;
 import org.kiwix.kiwixmobile.views.CompatFindActionModeCallback;
@@ -98,6 +98,7 @@ import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_SEARCH
 import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_STAR;
 import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_IS_WIDGET_VOICE;
 import static org.kiwix.kiwixmobile.constants.IntentExtra.EXTRA_ZIM_FILE;
+import static org.kiwix.kiwixmobile.constants.NamedDependency.NAMED_PARSER_JS;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_BACK_TO_TOP;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CURRENT_ARTICLES;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CURRENT_FILE;
@@ -106,7 +107,7 @@ import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CURRENT_TAB;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_FULLSCREEN;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_HIDE_TOOLBAR;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_IS_FIRST_RUN;
-import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_KIWIX_MOBILE;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_LANGUAGE_CHOOSER;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_NEW_TAB_BACKGROUND;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_NIGHT_MODE;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_ZOOM;
@@ -143,8 +144,6 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
 
   private static Uri KIWIX_BROWSER_MARKET_URI;
 
-  private String documentParserJs;
-
   private DocumentParser documentParser;
 
   public List<TableDrawerAdapter.DocumentSection> documentSections;
@@ -175,9 +174,11 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
 
   private boolean isFirstRun;
 
-  private SharedPreferences settings;
-
   private BookmarksDao bookmarksDao;
+
+  @Inject @Named(NAMED_PARSER_JS) String parserJS;
+
+  @Inject SharedPreferences preferences;
 
   @BindView(R.id.toolbar) Toolbar toolbar;
 
@@ -258,8 +259,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   public void onCreate(Bundle savedInstanceState) {
 
     super.onCreate(savedInstanceState);
-    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-    nightMode = sharedPreferences.getBoolean(PREF_NIGHT_MODE, false);
+    nightMode = preferences.getBoolean(PREF_NIGHT_MODE, false);
     if (nightMode) {
       setTheme(R.style.AppTheme_Night);
     }
@@ -273,10 +273,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
 
     initPlayStoreUri();
 
-    isHideToolbar = sharedPreferences.getBoolean(PREF_HIDE_TOOLBAR, false);
-
-    FileReader fileReader = new FileReader();
-    documentParserJs = fileReader.readFile("js/documentParser.js", this);
+    isHideToolbar = preferences.getBoolean(PREF_HIDE_TOOLBAR, false);
 
     newTabButton.setOnClickListener((View view) -> newTab());
     tabForwardButtonContainer.setOnClickListener((View view) -> {
@@ -392,8 +389,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   }
 
   private void checkForRateDialog() {
-    settings = PreferenceManager.getDefaultSharedPreferences(this);
-    isFirstRun = settings.getBoolean(PREF_IS_FIRST_RUN, true);
+    isFirstRun = preferences.getBoolean(PREF_IS_FIRST_RUN, true);
     visitCounterPref = new RateAppCounter(this);
     tempVisitCount = visitCounterPref.getCount();
     ++tempVisitCount;
@@ -548,7 +544,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   }
 
   private void updateTableOfContents() {
-    getCurrentWebView().loadUrl("javascript:(" + documentParserJs + ")()");
+    getCurrentWebView().loadUrl("javascript:(" + parserJS + ")()");
   }
 
   private void shrinkDrawers() {
@@ -778,8 +774,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
     int classicScreenFlag = WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
     getWindow().addFlags(fullScreenFlag);
     getWindow().clearFlags(classicScreenFlag);
-    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-    SharedPreferences.Editor editor = settings.edit();
+    SharedPreferences.Editor editor = preferences.edit();
     editor.putBoolean(PREF_FULLSCREEN, true);
     editor.apply();
     expandDrawers();
@@ -798,8 +793,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
     int classicScreenFlag = WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
     getWindow().clearFlags(fullScreenFlag);
     getWindow().addFlags(classicScreenFlag);
-    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-    SharedPreferences.Editor editor = settings.edit();
+    SharedPreferences.Editor editor = preferences.edit();
     editor.putBoolean(PREF_FULLSCREEN, false);
     editor.apply();
     shrinkDrawers();
@@ -1451,16 +1445,15 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
 
   public void loadPrefs() {
 
-    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-    nightMode = sharedPreferences.getBoolean(PREF_NIGHT_MODE, false);
-    isBackToTopEnabled = sharedPreferences.getBoolean(PREF_BACK_TO_TOP, false);
-    isHideToolbar = sharedPreferences.getBoolean(PREF_HIDE_TOOLBAR, false);
-    isFullscreenOpened = sharedPreferences.getBoolean(PREF_FULLSCREEN, false);
-    boolean isZoomEnabled = sharedPreferences.getBoolean(PREF_ZOOM_ENABLED, false);
-    isOpenNewTabInBackground = sharedPreferences.getBoolean(PREF_NEW_TAB_BACKGROUND, false);
+    nightMode = preferences.getBoolean(PREF_NIGHT_MODE, false);
+    isBackToTopEnabled = preferences.getBoolean(PREF_BACK_TO_TOP, false);
+    isHideToolbar = preferences.getBoolean(PREF_HIDE_TOOLBAR, false);
+    isFullscreenOpened = preferences.getBoolean(PREF_FULLSCREEN, false);
+    boolean isZoomEnabled = preferences.getBoolean(PREF_ZOOM_ENABLED, false);
+    isOpenNewTabInBackground = preferences.getBoolean(PREF_NEW_TAB_BACKGROUND, false);
 
     if (isZoomEnabled) {
-      int zoomScale = (int) sharedPreferences.getFloat(PREF_ZOOM, 100.0f);
+      int zoomScale = (int) preferences.getFloat(PREF_ZOOM, 100.0f);
       getCurrentWebView().setInitialScale(zoomScale);
     } else {
       getCurrentWebView().setInitialScale(0);
@@ -1506,8 +1499,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   }
 
   public void saveTabStates() {
-    SharedPreferences settings = getSharedPreferences(PREF_KIWIX_MOBILE, 0);
-    SharedPreferences.Editor editor = settings.edit();
+    SharedPreferences.Editor editor = preferences.edit();
 
     JSONArray urls = new JSONArray();
     JSONArray positions = new JSONArray();
@@ -1526,12 +1518,11 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   }
 
   public void restoreTabStates() {
-    SharedPreferences settings = getSharedPreferences(PREF_KIWIX_MOBILE, 0);
-    String zimFile = settings.getString(PREF_CURRENT_FILE, null);
-    String zimArticles = settings.getString(PREF_CURRENT_ARTICLES, null);
-    String zimPositions = settings.getString(PREF_CURRENT_POSITIONS, null);
+    String zimFile = preferences.getString(PREF_CURRENT_FILE, null);
+    String zimArticles = preferences.getString(PREF_CURRENT_ARTICLES, null);
+    String zimPositions = preferences.getString(PREF_CURRENT_POSITIONS, null);
 
-    int currentTab = settings.getInt(PREF_CURRENT_TAB, 0);
+    int currentTab = preferences.getInt(PREF_CURRENT_TAB, 0);
 
     openZimFile(new File(zimFile), false);
     try {
@@ -1568,8 +1559,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
           + " -> open this zimfile and load menu_main page");
       openZimFile(new File(filePath), false);
     } else {
-      SharedPreferences settings = getSharedPreferences(PREF_KIWIX_MOBILE, 0);
-      String zimFile = settings.getString(PREF_CURRENT_FILE, null);
+      String zimFile = preferences.getString(PREF_CURRENT_FILE, null);
       if (zimFile != null && new File(zimFile).exists()) {
         Log.d(TAG_KIWIX,
             " Kiwix normal start, zimFile loaded last time -> Open last used zimFile " + zimFile);
@@ -1590,10 +1580,8 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
             LanguageUtils.handleLocaleChange(this, Constants.CUSTOM_APP_ENFORCED_LANG);
 
             // save new locale into preferences for next startup
-            SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(this);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("pref_language_chooser", Constants.CUSTOM_APP_ENFORCED_LANG);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(PREF_LANGUAGE_CHOOSER, Constants.CUSTOM_APP_ENFORCED_LANG);
             editor.apply();
 
             // restart activity for new locale to take effect
@@ -1665,7 +1653,7 @@ public class KiwixMobileActivityNew extends BaseActivity implements WebViewCallb
   @Override public void webViewUrlLoading() {
     if (isFirstRun) {
       contentsDrawerHint();
-      SharedPreferences.Editor editor = settings.edit();
+      SharedPreferences.Editor editor = preferences.edit();
       editor.putBoolean("isFirstRun", false); // It is no longer the first run
       isFirstRun = false;
       editor.apply();

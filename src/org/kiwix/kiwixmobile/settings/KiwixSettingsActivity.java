@@ -59,6 +59,7 @@ import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CLEAR_ALL_HISTO
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_CREDITS;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_LANG;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_NIGHT_MODE;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_SELECT_FOLDER;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_STORAGE;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_VERSION;
 import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_ZOOM;
@@ -66,26 +67,6 @@ import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_ZOOM_ENABLED;
 import static org.kiwix.kiwixmobile.utils.StyleUtils.dialogStyle;
 
 public class KiwixSettingsActivity extends AppCompatActivity {
-
-  //public static final int RESULT_RESTART = 1236;
-  //
-  //public static final int RESULT_HISTORY_CLEARED = 1239;
-
-  //public static final String PREF_LANG = "pref_language_chooser";
-  //
-  //public static final String PREF_VERSION = "pref_version";
-  //
-  //public static final String PREF_ZOOM_ENABLED = "pref_zoom_enabled";
-  //
-  //public static final String PREF_ZOOM = "pref_zoom_slider";
-  //
-  //public static final String PREF_CLEAR_ALL_HISTORY = "pref_clear_all_history";
-  //
-  //public static final String PREF_CREDITS = "pref_credits";
-  //
-  //public static final String PREF_STORAGE = "pref_select_folder";
-  //
-  //public static final String PREF_NIGHT_MODE = "pref_nightmode";
 
   public static String zimFile;
 
@@ -145,9 +126,9 @@ public class KiwixSettingsActivity extends AppCompatActivity {
       if (Constants.CUSTOM_APP_ENFORCED_LANG.equals("")) {
         setUpLanguageChooser(PREF_LANG);
       } else {
-        getPreferenceScreen().removePreference(getPrefrence("pref_language"));
+        getPreferenceScreen().removePreference(getPreferences("pref_language"));
       }
-      mSlider = (SliderPreference) getPrefrence(PREF_ZOOM);
+      mSlider = (SliderPreference) getPreferences(PREF_ZOOM);
       setSliderState();
       setStorage();
       setUpSettings();
@@ -161,16 +142,16 @@ public class KiwixSettingsActivity extends AppCompatActivity {
 
     private void setStorage() {
       if (Constants.IS_CUSTOM_APP) {
-        getPreferenceScreen().removePreference(getPrefrence("pref_storage"));
+        getPreferenceScreen().removePreference(getPreferences("pref_storage"));
       } else {
         if (Environment.isExternalStorageEmulated()) {
-          getPrefrence(PREF_STORAGE).setTitle(PreferenceManager.getDefaultSharedPreferences(getActivity())
+          getPreferences(PREF_SELECT_FOLDER).setTitle(PreferenceManager.getDefaultSharedPreferences(getActivity())
               .getString(KiwixMobileActivity.PREF_STORAGE_TITLE, "Internal"));
         } else {
-          getPrefrence(PREF_STORAGE).setTitle(PreferenceManager.getDefaultSharedPreferences(getActivity())
+          getPreferences(PREF_SELECT_FOLDER).setTitle(PreferenceManager.getDefaultSharedPreferences(getActivity())
               .getString(KiwixMobileActivity.PREF_STORAGE_TITLE, "External"));
         }
-        getPrefrence(PREF_STORAGE).setSummary(LibraryFragment.bytesToHuman(new File(PreferenceManager
+        getPreferences(PREF_SELECT_FOLDER ).setSummary(LibraryFragment.bytesToHuman(new File(PreferenceManager
             .getDefaultSharedPreferences(getActivity())
             .getString(KiwixMobileActivity.PREF_STORAGE, Environment.getExternalStorageDirectory()
                 .getPath())).getFreeSpace()));
@@ -207,7 +188,7 @@ public class KiwixSettingsActivity extends AppCompatActivity {
 
     private void setUpLanguageChooser(String preferenceId) {
 
-      ListPreference languageList = (ListPreference) getPrefrence(preferenceId);
+      ListPreference languageList = (ListPreference) getPreferences(preferenceId);
       LanguageUtils languageUtils = new LanguageUtils(getActivity());
 
       languageList.setTitle(Locale.getDefault().getDisplayLanguage());
@@ -252,7 +233,7 @@ public class KiwixSettingsActivity extends AppCompatActivity {
       versionPref.setSummary(version);
     }
 
-    private Preference getPrefrence(String preferenceId) {
+    private Preference getPreferences(String preferenceId) {
       return PrefsFragment.this.findPreference(preferenceId);
     }
 

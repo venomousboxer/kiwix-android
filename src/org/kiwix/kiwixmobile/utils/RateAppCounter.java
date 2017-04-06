@@ -17,45 +17,40 @@
  * MA 02110-1301, USA.
  */
 
-
 package org.kiwix.kiwixmobile.utils;
 
-import android.content.Context;
 import android.content.SharedPreferences;
+import javax.inject.Inject;
 
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_NO_THANKS_CLICKED;
+import static org.kiwix.kiwixmobile.constants.PreferenceTag.PREF_RATE_COUNTER;
 
 public class RateAppCounter {
 
-  private String MASTER_NAME = "visitCounter";
-  private String NOTHANKS_CLICKED = "clickedNoThanks";
-  private SharedPreferences visitCounter;
+  private SharedPreferences preferences;
 
-  public RateAppCounter(Context context) {
-    visitCounter = context.getSharedPreferences(MASTER_NAME, 0);
-    visitCounter = context.getSharedPreferences(NOTHANKS_CLICKED, 0);
+  @Inject
+  public RateAppCounter(SharedPreferences preferences) {
+    this.preferences = preferences;
   }
 
   public boolean getNoThanksState() {
-    return visitCounter.getBoolean(NOTHANKS_CLICKED, false);
+    return preferences.getBoolean(PREF_NO_THANKS_CLICKED, false);
   }
 
-  public void setNoThanksState(boolean val) {
-    SharedPreferences.Editor CounterEditor = visitCounter.edit();
-    CounterEditor.putBoolean(NOTHANKS_CLICKED, val);
+  public void setNoThanksState(boolean state) {
+    SharedPreferences.Editor CounterEditor = preferences.edit();
+    CounterEditor.putBoolean(PREF_NO_THANKS_CLICKED, state);
     CounterEditor.apply();
   }
 
-  public SharedPreferences.Editor getEditor() {
-    return visitCounter.edit();
-  }
-
   public int getCount() {
-    return visitCounter.getInt("count", 0);
+    return preferences.getInt(PREF_RATE_COUNTER, 0);
   }
 
   public void setCount(int count) {
-    SharedPreferences.Editor CounterEditor = visitCounter.edit();
-    CounterEditor.putInt("count", count);
+    SharedPreferences.Editor CounterEditor = preferences.edit();
+    CounterEditor.putInt(PREF_RATE_COUNTER, count);
     CounterEditor.apply();
   }
 }

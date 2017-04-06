@@ -6,6 +6,7 @@ import org.kiwix.kiwixmobile.KiwixMobileActivity;
 import org.kiwix.kiwixmobile.KiwixMobileActivityNew;
 import org.kiwix.kiwixmobile.LibraryFragment;
 import org.kiwix.kiwixmobile.di.modules.ApplicationModule;
+import org.kiwix.kiwixmobile.di.modules.MainViewModule;
 import org.kiwix.kiwixmobile.di.modules.NetworkModule;
 import org.kiwix.kiwixmobile.downloader.DownloadService;
 
@@ -13,6 +14,7 @@ import org.kiwix.kiwixmobile.downloader.DownloadService;
 @Component(modules = {
     ApplicationModule.class,
     NetworkModule.class,
+    MainViewModule.class
 })
 public interface ApplicationComponent {
   void inject(KiwixMobileActivity activity);
