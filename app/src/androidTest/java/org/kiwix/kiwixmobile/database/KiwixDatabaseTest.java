@@ -26,10 +26,8 @@ import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kiwix.kiwixmobile.database.BookmarksDao;
-import org.kiwix.kiwixmobile.database.KiwixDatabase;
-import org.kiwix.kiwixmobile.new_bookmarks.entities.BookmarkArticle;
-import org.kiwix.kiwixmobile.new_bookmarks.entities.ReadinglistFolder;
+import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
+import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 
 
 import java.io.BufferedWriter;

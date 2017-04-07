@@ -1,4 +1,4 @@
-package org.kiwix.kiwixmobile.new_bookmarks;
+package org.kiwix.kiwixmobile.readinglists;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

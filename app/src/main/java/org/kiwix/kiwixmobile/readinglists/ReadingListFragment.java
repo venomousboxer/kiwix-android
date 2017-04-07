@@ -1,4 +1,4 @@
-package org.kiwix.kiwixmobile.new_bookmarks;
+package org.kiwix.kiwixmobile.readinglists;
 
 
 import android.os.Bundle;
@@ -17,9 +17,9 @@ import com.mikepenz.fastadapter.adapters.ItemAdapter;
 import org.kiwix.kiwixmobile.R;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
 import org.kiwix.kiwixmobile.database.ReadingListFolderDao;
-import org.kiwix.kiwixmobile.new_bookmarks.entities.BookmarkArticle;
-import org.kiwix.kiwixmobile.new_bookmarks.entities.ReadinglistFolder;
-import org.kiwix.kiwixmobile.new_bookmarks.lists.ReadingListArticleItem;
+import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
+import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
+import org.kiwix.kiwixmobile.readinglists.lists.ReadingListArticleItem;
 
 import java.util.ArrayList;
 

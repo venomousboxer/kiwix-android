@@ -1,4 +1,4 @@
-package org.kiwix.kiwixmobile.new_bookmarks.lists;
+package org.kiwix.kiwixmobile.readinglists.lists;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;

@@ -5,8 +5,8 @@ import com.yahoo.squidb.sql.Query;
 
 import org.kiwix.kiwixmobile.database.entity.Bookmarks;
 import org.kiwix.kiwixmobile.database.entity.ReadingListFolders;
-import org.kiwix.kiwixmobile.new_bookmarks.entities.BookmarkArticle;
-import org.kiwix.kiwixmobile.new_bookmarks.entities.ReadinglistFolder;
+import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
+import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 
 import java.util.ArrayList;
 

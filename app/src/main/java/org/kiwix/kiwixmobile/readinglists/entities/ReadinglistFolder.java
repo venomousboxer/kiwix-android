@@ -1,4 +1,4 @@
-package org.kiwix.kiwixmobile.new_bookmarks.entities;
+package org.kiwix.kiwixmobile.readinglists.entities;
 
 /**
  * Created by EladKeyshawn on 04/04/2017.
