@@ -22,18 +22,21 @@ repositories {
 }
 
 dependencies {
-  compile 'com.android.support:appcompat-v7:24.1.0'
-  compile 'com.android.support:support-v13:24.1.0'
-  compile 'com.android.support:support-v4:24.1.0'
-  compile 'com.android.support:design:24.1.0'
-  compile 'com.android.support:cardview-v7:24.1.0'
+  compile 'com.android.support:appcompat-v7:25.3.0'
+  compile 'com.android.support:support-v13:25.3.0'
+  compile 'com.android.support:support-v4:25.3.0'
+  compile 'com.android.support:design:25.3.0'
+  compile 'com.android.support:cardview-v7:25.3.0'
 
-  androidTestCompile 'com.android.support:support-annotations:24.1.0'
+  androidTestCompile 'com.android.support:support-annotations:25.3.0'
   androidTestCompile 'com.android.support.test:runner:0.5'
   androidTestCompile 'com.android.support.test:rules:0.5'
 
   compile 'com.google.dagger:dagger:2.0.2'
   apt "com.google.dagger:dagger-compiler:2.0.2"
+
+  compile "com.soundcloud.lightcycle:lightcycle-lib:1.6.1"
+  apt "com.soundcloud.lightcycle:lightcycle-processor:1.6.1"
 
   compile 'com.yahoo.squidb:squidb:2.0.0'
   compile 'com.yahoo.squidb:squidb-annotations:2.0.0'
@@ -51,6 +54,8 @@ dependencies {
   compile 'io.reactivex:rxandroid:1.1.0'
   compile 'io.reactivex:rxjava:1.1.3'
 
+  compile 'com.jakewharton.rxbinding:rxbinding:0.4.0'
+
   compile 'eu.mhutti1.utils.storage:android-storage-devices:0.4.8'
   compile 'com.jakewharton:butterknife:8.0.1'
   apt 'com.jakewharton:butterknife-compiler:8.0.1'
@@ -66,12 +71,12 @@ dependencies {
   }
 
   android {
-    compileSdkVersion 24
+    compileSdkVersion 25
     buildToolsVersion '25.0.0'
 
     defaultConfig {
       minSdkVersion 14
-      targetSdkVersion 24
+      targetSdkVersion 25
       testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

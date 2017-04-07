@@ -1,24 +1,21 @@
 package org.kiwix.kiwixmobile;
 
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.ImageView;
 import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import java.util.List;
+import org.kiwix.kiwixmobile.library.WebViewManager;
 import org.kiwix.kiwixmobile.views.web.KiwixWebView;
 
 public class TabDrawerAdapter extends RecyclerView.Adapter<TabDrawerAdapter.ViewHolder> {
   private TabClickListener listener;
-  private List<KiwixWebView> webViews;
-
   private int selectedPosition = 0;
+  private WebViewManager webViewManager;
 
-  public TabDrawerAdapter(List<KiwixWebView> webViews) {
-    this.webViews = webViews;
+  public TabDrawerAdapter(WebViewManager webViewManager) {
+    this.webViewManager = webViewManager;
   }
 
   @Override
@@ -29,7 +26,7 @@ public class TabDrawerAdapter extends RecyclerView.Adapter<TabDrawerAdapter.View
 
   @Override
   public void onBindViewHolder(ViewHolder holder, int position) {
-    KiwixWebView webView = webViews.get(position);
+    KiwixWebView webView = webViewManager.getTab(position);
     holder.title.setText(webView.getTitle());
     holder.exit.setOnClickListener(v -> listener.onCloseTab(v, position));
     holder.itemView.setOnClickListener(v -> {
@@ -43,7 +40,7 @@ public class TabDrawerAdapter extends RecyclerView.Adapter<TabDrawerAdapter.View
 
   @Override
   public int getItemCount() {
-    return webViews.size();
+    return webViewManager.size();
   }
 
   public void setSelected(int position) {

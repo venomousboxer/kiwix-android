@@ -22,21 +22,14 @@ package org.kiwix.kiwixmobile;
 import android.Manifest;
 import android.app.Activity;
 import android.appwidget.AppWidgetManager;
-import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
+import android.os.*;
 import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -44,64 +37,36 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
+import android.support.v7.app.*;
 import android.support.v7.view.menu.ActionMenuItemView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.*;
 import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.ActionMode;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.view.*;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
+import android.widget.*;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import javax.inject.Inject;
 import okhttp3.OkHttpClient;
 import org.json.JSONArray;
 import org.kiwix.kiwixmobile.database.BookmarksDao;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
-import org.kiwix.kiwixmobile.di.components.ApplicationComponent;
 import org.kiwix.kiwixmobile.settings.Constants;
 import org.kiwix.kiwixmobile.settings.KiwixSettingsActivity;
-import org.kiwix.kiwixmobile.utils.DimenUtils;
-import org.kiwix.kiwixmobile.utils.DocumentParser;
-import org.kiwix.kiwixmobile.utils.KiwixSearchWidget;
-import org.kiwix.kiwixmobile.utils.KiwixTextToSpeech;
-import org.kiwix.kiwixmobile.utils.LanguageUtils;
-import org.kiwix.kiwixmobile.utils.NetworkUtils;
-import org.kiwix.kiwixmobile.utils.RateAppCounter;
-import org.kiwix.kiwixmobile.utils.StyleUtils;
+import org.kiwix.kiwixmobile.utils.*;
 import org.kiwix.kiwixmobile.utils.files.FileReader;
 import org.kiwix.kiwixmobile.utils.files.FileUtils;
 import org.kiwix.kiwixmobile.views.AnimatedProgressBar;
 import org.kiwix.kiwixmobile.views.CompatFindActionModeCallback;
-import org.kiwix.kiwixmobile.views.web.KiwixWebView;
-import org.kiwix.kiwixmobile.views.web.ToolbarScrollingKiwixWebView;
-import org.kiwix.kiwixmobile.views.web.ToolbarStaticKiwixWebView;
+import org.kiwix.kiwixmobile.views.web.*;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 import static org.kiwix.kiwixmobile.TableDrawerAdapter.DocumentSection;
@@ -110,7 +75,7 @@ import static org.kiwix.kiwixmobile.constants.ActivityRequest.RESULT_HISTORY_CLE
 import static org.kiwix.kiwixmobile.constants.ActivityRequest.RESULT_RESTART;
 import static org.kiwix.kiwixmobile.utils.StyleUtils.dialogStyle;
 
-public class KiwixMobileActivity extends BaseActivity implements WebViewCallback {
+public class KiwixMobileActivity extends AppCompatActivity implements WebViewCallback {
 
   public static final int REQUEST_FILE_SEARCH = 1236;
 
@@ -332,7 +297,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     });
 
     documentSections = new ArrayList<>();
-    tabDrawerAdapter = new TabDrawerAdapter(mWebViews);
+    //tabDrawerAdapter = new TabDrawerAdapter(mWebViews);
     tabDrawerLeft.setLayoutManager(new LinearLayoutManager(this));
     tabDrawerLeft.setAdapter(tabDrawerAdapter);
     tableDrawerRight.setLayoutManager(new LinearLayoutManager(this));
@@ -579,13 +544,13 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     tts.shutdown();
   }
 
-  @Override protected void setupDagger(ApplicationComponent appComponent) {
-    appComponent.inject(this);
-  }
-
-  @Override public void attachPresenter() {
-
-  }
+  //@Override protected void setupDagger(ApplicationComponent appComponent) {
+  //  appComponent.inject(this);
+  //}
+  //
+  //@Override public void attachPresenter() {
+  //
+  //}
 
   private void updateTableOfContents() {
     getCurrentWebView().loadUrl("javascript:(" + documentParserJs + ")()");
@@ -611,12 +576,11 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   private KiwixWebView getWebView(String url) {
-    AttributeSet attrs = StyleUtils.getAttributes(this, R.xml.webview);
     KiwixWebView webView;
     if (isHideToolbar) {
-      webView = new ToolbarScrollingKiwixWebView(KiwixMobileActivity.this, this, toolbarContainer, attrs);
-      ((ToolbarScrollingKiwixWebView) webView).setOnToolbarVisibilityChangeListener(
-          new ToolbarScrollingKiwixWebView.OnToolbarVisibilityChangeListener() {
+      webView = new ScrollingKiwixWebView(KiwixMobileActivity.this, this, toolbarContainer);
+      ((ScrollingKiwixWebView) webView).setOnToolbarVisibilityChangeListener(
+          new ScrollingKiwixWebView.OnToolbarVisibilityChangeListener() {
             @Override
             public void onToolbarDisplayed() {
               shrinkDrawers();
@@ -629,7 +593,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
           }
       );
     } else {
-      webView = new ToolbarStaticKiwixWebView(KiwixMobileActivity.this, this, toolbarContainer, attrs);
+      webView = new StaticKiwixWebView(KiwixMobileActivity.this, this, toolbarContainer);
     }
     webView.loadUrl(url);
     webView.loadPrefs();
@@ -714,7 +678,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     updateTableOfContents();
 
     if (isHideToolbar) {
-      ((ToolbarScrollingKiwixWebView) webView).ensureToolbarDisplayed();
+      ((ScrollingKiwixWebView) webView).ensureToolbarDisplayed();
     }
   }
 

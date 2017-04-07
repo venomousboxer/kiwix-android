@@ -20,15 +20,13 @@
 package org.kiwix.kiwixmobile.views.web;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
-
-import org.kiwix.kiwixmobile.KiwixMobileActivity;
-import org.kiwix.kiwixmobile.WebViewCallback;
+import org.kiwix.kiwixmobile.*;
 import org.kiwix.kiwixmobile.utils.DimenUtils;
+import org.kiwix.kiwixmobile.utils.StyleUtils;
 
-public class ToolbarScrollingKiwixWebView extends KiwixWebView {
+public class ScrollingKiwixWebView extends KiwixWebView {
 
   private final int statusBarHeight = DimenUtils.getTranslucentStatusBarHeight(getContext());
   private final int toolbarHeight = DimenUtils.getToolbarHeight(getContext());
@@ -36,9 +34,10 @@ public class ToolbarScrollingKiwixWebView extends KiwixWebView {
   private OnToolbarVisibilityChangeListener listener;
   private float startY;
 
-  public ToolbarScrollingKiwixWebView(Context context, WebViewCallback callback, View toolbarView, AttributeSet attrs) {
-    super(context, callback, attrs);
+  public ScrollingKiwixWebView(Context context, WebViewCallback callback, View toolbarView) {
+    super(context, callback, StyleUtils.getAttributes(context, R.xml.webview));
     this.toolbarView = toolbarView;
+
   }
 
   protected boolean moveToolbar(int scrollDelta) {
