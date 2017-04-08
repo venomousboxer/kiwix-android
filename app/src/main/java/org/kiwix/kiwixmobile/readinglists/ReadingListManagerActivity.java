@@ -30,7 +30,7 @@ public class ReadingListManagerActivity extends AppCompatActivity {
 
     private void setUpToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.menu_bookmarks_list));
+        toolbar.setTitle("Reading Lists");
         setSupportActionBar(toolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

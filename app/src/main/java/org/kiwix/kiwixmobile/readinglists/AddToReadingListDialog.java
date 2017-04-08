@@ -5,12 +5,14 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.mikepenz.fastadapter.FastAdapter;
@@ -23,6 +25,9 @@ import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 import org.kiwix.kiwixmobile.readinglists.lists.ReadingListItem;
 
 import java.util.ArrayList;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 
 public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
@@ -37,6 +42,10 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
 //    private ReadingListItemCallback listItemCallback = new ReadingListItemCallback();
     private String pageTitle;
     private ReadingListFolderDao readinglistDao;
+    @BindView(R.id.dialog_add_to_readinglist_layout)
+    public FrameLayout snackbarLayout;
+
+
 
     public static AddToReadingListDialog newInstance(@NonNull String title) {
         return newInstance(title, null);
@@ -56,7 +65,6 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         pageTitle = getArguments().getString("title");
-//        adapter = new ReadingListAdapter();
     }
 
     @Override
@@ -92,6 +100,13 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
         return rootView;
     }
 
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ButterKnife.bind(getActivity());
+    }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         return super.onCreateDialog(savedInstanceState);
@@ -121,6 +136,7 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
     private class CreateButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
+            dismiss();
             showCreateListDialog();
         }
     }
@@ -128,15 +144,26 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
     private void showCreateListDialog() {
         new MaterialDialog.Builder(getActivity())
             .title("Create a new reading list")
-            .content("tada")
-            .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
-            .input("my reading list", null, new MaterialDialog.InputCallback() {
+            .content("Name your folder:")
+            .inputType(InputType.TYPE_CLASS_TEXT)
+            .input(null, "My readinglist", new MaterialDialog.InputCallback() {
                 @Override
                 public void onInput(MaterialDialog dialog, CharSequence input) {
-                    // TODO: save folder
+                    ReadinglistFolder newReadinlistFolder = new ReadinglistFolder(input.toString());
+                    readinglistDao.saveFolder(newReadinlistFolder);
+                    showAddedToListSnackbar();
                 }
             }).show();
 
+    }
+
+
+
+    private void showAddedToListSnackbar() {
+        Snackbar addedToListSnackbar =
+            Snackbar.make(snackbarLayout, "Article added to list", Snackbar.LENGTH_LONG);
+        addedToListSnackbar.setActionTextColor(getResources().getColor(R.color.white));
+        addedToListSnackbar.show();
     }
 
 
