@@ -74,14 +74,19 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
 import javax.inject.Inject;
+
 import okhttp3.OkHttpClient;
+
 import org.json.JSONArray;
 import org.kiwix.kiwixmobile.database.BookmarksDao;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
@@ -162,6 +167,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   public static final String PREF_STORAGE_TITLE = "pref_selected_title";
 
   public static final String contactEmailAddress = "android@kiwix.org";
+
   private static final String BOTTOM_SHEET_FRAGMENT_TAG = "framgent-tag";
 
   public static boolean isFullscreenOpened;
@@ -224,47 +230,68 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   private BookmarksDao bookmarksDao;
 
-  @BindView(R.id.toolbar) Toolbar toolbar;
+  @BindView(R.id.toolbar)
+  Toolbar toolbar;
 
-  @BindView(R.id.button_backtotop) Button backToTopButton;
+  @BindView(R.id.button_backtotop)
+  Button backToTopButton;
 
-  @BindView(R.id.button_stop_tts) Button stopTTSButton;
+  @BindView(R.id.button_stop_tts)
+  Button stopTTSButton;
 
-  @BindView(R.id.button_pause_tts) Button pauseTTSButton;
+  @BindView(R.id.button_pause_tts)
+  Button pauseTTSButton;
 
-  @BindView(R.id.tts_controls) LinearLayout TTSControls;
+  @BindView(R.id.tts_controls)
+  LinearLayout TTSControls;
 
-  @BindView(R.id.toolbar_layout) RelativeLayout toolbarContainer;
+  @BindView(R.id.toolbar_layout)
+  RelativeLayout toolbarContainer;
 
-  @BindView(R.id.progress_view) AnimatedProgressBar progressBar;
+  @BindView(R.id.progress_view)
+  AnimatedProgressBar progressBar;
 
-  @BindView(R.id.FullscreenControlButton) ImageButton exitFullscreenButton;
+  @BindView(R.id.FullscreenControlButton)
+  ImageButton exitFullscreenButton;
 
-  @BindView(R.id.snackbar_layout) CoordinatorLayout snackbarLayout;
+  @BindView(R.id.snackbar_layout)
+  CoordinatorLayout snackbarLayout;
 
-  @BindView(R.id.new_tab_button) RelativeLayout newTabButton;
+  @BindView(R.id.new_tab_button)
+  RelativeLayout newTabButton;
 
-  @BindView(R.id.drawer_layout) DrawerLayout drawerLayout;
+  @BindView(R.id.drawer_layout)
+  DrawerLayout drawerLayout;
 
-  @BindView(R.id.left_drawer) LinearLayout tabDrawerLeftContainer;
+  @BindView(R.id.left_drawer)
+  LinearLayout tabDrawerLeftContainer;
 
-  @BindView(R.id.right_drawer) LinearLayout tableDrawerRightContainer;
+  @BindView(R.id.right_drawer)
+  LinearLayout tableDrawerRightContainer;
 
-  @BindView(R.id.left_drawer_list) RecyclerView tabDrawerLeft;
+  @BindView(R.id.left_drawer_list)
+  RecyclerView tabDrawerLeft;
 
-  @BindView(R.id.right_drawer_list) RecyclerView tableDrawerRight;
+  @BindView(R.id.right_drawer_list)
+  RecyclerView tableDrawerRight;
 
-  @BindView(R.id.content_frame) FrameLayout contentFrame;
+  @BindView(R.id.content_frame)
+  FrameLayout contentFrame;
 
-  @BindView(R.id.action_back_button) ImageView tabBackButton;
+  @BindView(R.id.action_back_button)
+  ImageView tabBackButton;
 
-  @BindView(R.id.action_forward_button) ImageView tabForwardButton;
+  @BindView(R.id.action_forward_button)
+  ImageView tabForwardButton;
 
-  @BindView(R.id.action_back) View tabBackButtonContainer;
+  @BindView(R.id.action_back)
+  View tabBackButtonContainer;
 
-  @BindView(R.id.action_forward) View tabForwardButtonContainer;
+  @BindView(R.id.action_forward)
+  View tabForwardButtonContainer;
 
-  @Inject OkHttpClient okHttpClient;
+  @Inject
+  OkHttpClient okHttpClient;
 
 
   @Override
@@ -346,12 +373,14 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     TableDrawerAdapter tableDrawerAdapter = new TableDrawerAdapter();
     tableDrawerRight.setAdapter(tableDrawerAdapter);
     tableDrawerAdapter.setTableClickListener(new TableClickListener() {
-      @Override public void onHeaderClick(View view) {
+      @Override
+      public void onHeaderClick(View view) {
         getCurrentWebView().setScrollY(0);
         drawerLayout.closeDrawer(GravityCompat.END);
       }
 
-      @Override public void onSectionClick(View view, int position) {
+      @Override
+      public void onSectionClick(View view, int position) {
         getCurrentWebView().loadUrl("javascript:document.getElementById('"
             + documentSections.get(position).id
             + "').scrollIntoView();");
@@ -363,11 +392,13 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     tableDrawerAdapter.notifyDataSetChanged();
 
     tabDrawerAdapter.setTabClickListener(new TabDrawerAdapter.TabClickListener() {
-      @Override public void onSelectTab(View view, int position) {
+      @Override
+      public void onSelectTab(View view, int position) {
         selectTab(position);
       }
 
-      @Override public void onCloseTab(View view, int position) {
+      @Override
+      public void onCloseTab(View view, int position) {
         closeTab(position);
       }
     });
@@ -390,7 +421,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
         tableDrawerAdapter.notifyDataSetChanged();
       }
 
-      @Override public void clearSections() {
+      @Override
+      public void clearSections() {
         documentSections.clear();
         tableDrawerAdapter.notifyDataSetChanged();
       }
@@ -585,7 +617,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     tts.shutdown();
   }
 
-  @Override protected void setupDagger(ApplicationComponent appComponent) {
+  @Override
+  protected void setupDagger(ApplicationComponent appComponent) {
     appComponent.inject(this);
   }
 
@@ -854,7 +887,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   public void sendContactEmail() {
     Intent intent = new Intent(Intent.ACTION_SEND);
     intent.setType("plain/text");
-    intent.putExtra(Intent.EXTRA_EMAIL, new String[] { contactEmailAddress });
+    intent.putExtra(Intent.EXTRA_EMAIL, new String[]{contactEmailAddress});
     intent.putExtra(Intent.EXTRA_SUBJECT, "Feedback in " +
         LanguageUtils.getCurrentLocale(this).getDisplayLanguage());
     startActivity(Intent.createChooser(intent, ""));
@@ -912,7 +945,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     } else {
       this.file = file;
       ActivityCompat.requestPermissions(this,
-          new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+          new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
           KiwixMobileActivity.REQUEST_STORAGE_PERMISSION);
       if (BuildConfig.IS_CUSTOM_APP && Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
         Toast.makeText(this, getResources().getString(R.string.request_storage_custom), Toast.LENGTH_LONG)
@@ -927,7 +960,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   @Override
   public void onRequestPermissionsResult(int requestCode,
-      String permissions[], int[] grantResults) {
+                                         String permissions[], int[] grantResults) {
     switch (requestCode) {
       case KiwixMobileActivity.REQUEST_STORAGE_PERMISSION: {
         if (grantResults.length > 0
@@ -956,7 +989,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   // Create a correctly colored title for menu items
-  private SpannableString createMenuItem(String title){
+  private SpannableString createMenuItem(String title) {
     SpannableString s = new SpannableString(title);
     if (nightMode) {
       s.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), 0);
@@ -967,7 +1000,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   // Create a correctly colored title for menu items
-  private SpannableString createMenuText(String title){
+  private SpannableString createMenuText(String title) {
     SpannableString s = new SpannableString(title);
     s.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), 0);
     return s;
@@ -1030,8 +1063,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
             readinglistFoldersDao.saveFolder(new ReadinglistFolder("Hello1"));
             readinglistFoldersDao.saveFolder(new ReadinglistFolder("Hello2"));
 
-            readinglistFoldersDao.saveBookmark(new BookmarkArticle("article 1","article 1", "Hello1","shit1","shit1"));
-            readinglistFoldersDao.saveBookmark(new BookmarkArticle("article 1","article 1", "Hello1","shit1","shit1"));
+            readinglistFoldersDao.saveBookmark(new BookmarkArticle("article 1", "article 1", "Hello1", "shit1", "shit1"));
+            readinglistFoldersDao.saveBookmark(new BookmarkArticle("article 1", "article 1", "Hello1", "shit1", "shit1"));
 
 
             goToBookmarks();
@@ -1158,7 +1191,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
         }
         intent.setAction("");
         startActivityForResult(i, REQUEST_FILE_SEARCH);
-      } else if (intent.getAction().equals(KiwixSearchWidget.TEXT_CLICKED)){
+      } else if (intent.getAction().equals(KiwixSearchWidget.TEXT_CLICKED)) {
         intent.setAction("");
         goToSearch(false);
       } else if (intent.getAction().equals(KiwixSearchWidget.STAR_CLICKED)) {
@@ -1220,7 +1253,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
     AlertDialog.Builder builder = new AlertDialog.Builder(this, dialogStyle());
     builder.setMessage(getString(R.string.hint_contents_drawer_message))
-        .setPositiveButton(getString(R.string.got_it), (dialog, id) -> {})
+        .setPositiveButton(getString(R.string.got_it), (dialog, id) -> {
+        })
         .setTitle(getString(R.string.did_you_know))
         .setIcon(R.drawable.icon_question);
     AlertDialog alert = builder.create();
@@ -1466,14 +1500,14 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
         ZimContentProvider.getId() != null &&
         !getCurrentWebView().getUrl().equals("file:///android_res/raw/help.html")) {
       menu.findItem(R.id.menu_bookmarks)
-              .setEnabled(true)
-              .setIcon(bookmarks.contains(getCurrentWebView().getUrl()) ? R.drawable.action_bookmark_active : R.drawable.action_bookmark)
-              .getIcon().setAlpha(255);
+          .setEnabled(true)
+          .setIcon(bookmarks.contains(getCurrentWebView().getUrl()) ? R.drawable.action_bookmark_active : R.drawable.action_bookmark)
+          .getIcon().setAlpha(255);
     } else {
       menu.findItem(R.id.menu_bookmarks)
-              .setEnabled(false)
-              .setIcon(R.drawable.action_bookmark)
-              .getIcon().setAlpha(130);
+          .setEnabled(false)
+          .setIcon(R.drawable.action_bookmark)
+          .getIcon().setAlpha(130);
     }
   }
 
@@ -1705,7 +1739,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
         "onPause Save currentzimfile to preferences:" + ZimContentProvider.getZimFile());
   }
 
-  @Override public void webViewUrlLoading() {
+  @Override
+  public void webViewUrlLoading() {
     if (isFirstRun) {
       contentsDrawerHint();
       SharedPreferences.Editor editor = settings.edit();
@@ -1715,7 +1750,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     }
   }
 
-  @Override public void webViewUrlFinishedLoading() {
+  @Override
+  public void webViewUrlFinishedLoading() {
     updateTableOfContents();
     tabDrawerAdapter.notifyDataSetChanged();
 
@@ -1723,12 +1759,14 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       refreshBookmarkSymbol(menu);
   }
 
-  @Override public void webViewFailedLoading(String url) {
+  @Override
+  public void webViewFailedLoading(String url) {
     String error = String.format(getString(R.string.error_articleurlnotfound), url);
     Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
   }
 
-  @Override public void webViewProgressChanged(int progress) {
+  @Override
+  public void webViewProgressChanged(int progress) {
     progressBar.setProgress(progress);
     if (progress == 100) {
       Log.d(KiwixMobileActivity.TAG_KIWIX, "Loading article finished.");
@@ -1743,15 +1781,17 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     }
   }
 
-  @Override public void webViewTitleUpdated(String title) {
+  @Override
+  public void webViewTitleUpdated(String title) {
     tabDrawerAdapter.notifyDataSetChanged();
   }
 
 
-  @Override public void webViewPageChanged(int page, int maxPages) {
+  @Override
+  public void webViewPageChanged(int page, int maxPages) {
     if (isBackToTopEnabled) {
       if (getCurrentWebView().getScrollY() > 200) {
-        if (backToTopButton.getVisibility() == View.INVISIBLE && TTSControls.getVisibility() == View.GONE ) {
+        if (backToTopButton.getVisibility() == View.INVISIBLE && TTSControls.getVisibility() == View.GONE) {
           backToTopButton.setText(R.string.button_backtotop);
           backToTopButton.setVisibility(View.VISIBLE);
 
@@ -1777,7 +1817,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
     }
   }
 
-  @Override public void webViewLongClick(final String url) {
+  @Override
+  public void webViewLongClick(final String url) {
     boolean handleEvent = false;
     if (url.startsWith(ZimContentProvider.CONTENT_URI.toString())) {
       // This is my web site, so do not override; let my WebView load the page

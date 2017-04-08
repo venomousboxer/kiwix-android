@@ -7,8 +7,10 @@ import org.kiwix.kiwixmobile.database.entity.Bookmarks;
 import org.kiwix.kiwixmobile.database.entity.ReadingListFolders;
 import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
 import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
+import org.kiwix.kiwixmobile.readinglists.lists.ReadingListArticleItem;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Created by EladKeyshawn on 04/04/2017.
@@ -94,6 +96,12 @@ public class ReadingListFolderDao {
         mDb.clear();
     }
 
+    public void deleteArticles(Set<ReadingListArticleItem> selectedItems) {
+        for (ReadingListArticleItem item : selectedItems) {
+            mDb.deleteWhere(Bookmarks.class, Bookmarks.BOOKMARK_URL.eq(item.getArticle_url())
+            .and(Bookmarks.BOOKMARK_TITLE.eq(item.getTitle())));
+        }
+    }
 }
 
 

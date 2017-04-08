@@ -60,6 +60,8 @@ dependencies {
   compile('com.mikepenz:fastadapter:2.1.7@aar') {
     transitive = true
   }
+  compile 'com.mikepenz:fastadapter-extensions:2.5.0@aar'
+
 
   compile 'eu.mhutti1.utils.storage:android-storage-devices:0.5.0'
   compile 'com.jakewharton:butterknife:8.0.1'
