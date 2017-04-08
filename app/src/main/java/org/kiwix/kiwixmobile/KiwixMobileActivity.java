@@ -1058,15 +1058,6 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
             return;
           }
           findViewById(R.id.menu_bookmarks).setOnLongClickListener(view -> {
-            ReadingListFolderDao readinglistFoldersDao = new ReadingListFolderDao(KiwixDatabase.getInstance(getBaseContext()));
-            readinglistFoldersDao.saveFolder(new ReadinglistFolder("Hello"));
-            readinglistFoldersDao.saveFolder(new ReadinglistFolder("Hello1"));
-            readinglistFoldersDao.saveFolder(new ReadinglistFolder("Hello2"));
-
-            readinglistFoldersDao.saveBookmark(new BookmarkArticle("article 1", "article 1", "Hello1", "shit1", "shit1"));
-            readinglistFoldersDao.saveBookmark(new BookmarkArticle("article 1", "article 1", "Hello1", "shit1", "shit1"));
-
-
             goToBookmarks();
             return false;
           });

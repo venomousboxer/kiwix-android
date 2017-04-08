@@ -2,6 +2,7 @@ package org.kiwix.kiwixmobile.readinglists;
 
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.mikepenz.fastadapter.FastAdapter;
 import com.mikepenz.fastadapter.IAdapter;
@@ -29,6 +31,7 @@ import org.kiwix.kiwixmobile.database.ReadingListFolderDao;
 import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
 import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 import org.kiwix.kiwixmobile.readinglists.lists.ReadingListArticleItem;
+import org.kiwix.kiwixmobile.readinglists.lists.ReadingListItem;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -87,21 +90,54 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
         super.onViewCreated(view, savedInstanceState);
 
         readinglistRecyclerview = (RecyclerView) view.findViewById(R.id.readinglist_articles_list);
-        fastAdapter = new FastAdapter<>();
-        itemAdapter = new ItemAdapter<>();
-        mActionModeHelper = new ActionModeHelper(fastAdapter, R.menu.actionmenu_readinglist, new ActionBarCallBack());
 
-        fastAdapter.withOnClickListener(this);
-        fastAdapter.withSelectOnLongClick(false);
-        fastAdapter.withSelectable(false);
-        readinglistRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
-
-        readinglistRecyclerview.setAdapter(itemAdapter.wrap(fastAdapter));
+        setupFastAdapter();
 
         // shoud be injected in presenter when moving to mvp
         readinglistFoldersDao = new ReadingListFolderDao(KiwixDatabase.getInstance(getActivity()));
         loadArticlesOfFolder();
 
+    }
+
+
+    private void setupFastAdapter() {
+
+        mActionModeHelper = new ActionModeHelper(fastAdapter, R.menu.actionmenu_readinglist, new ActionBarCallBack());
+
+        fastAdapter = new FastAdapter<>();
+        itemAdapter = new ItemAdapter<>();
+
+        fastAdapter.withOnClickListener(this);
+        fastAdapter.withSelectOnLongClick(false);
+        fastAdapter.withSelectable(false);
+        fastAdapter.withMultiSelect(true);
+        readinglistRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        readinglistRecyclerview.setAdapter(itemAdapter.wrap(fastAdapter));
+
+
+        fastAdapter.withOnPreClickListener((v, adapter, item, position) -> {
+            //we handle the default onClick behavior for the actionMode. This will return null if it didn't do anything and you can handle a normal onClick
+            Boolean res = mActionModeHelper.onClick(item);
+            return res != null ? res : false;
+        });
+
+        fastAdapter.withOnClickListener((v, adapter, item, position) -> {
+//                Toast.makeText(v.getContext(), "SelectedCount: " + fastAdapter.getSelections().size() + " ItemsCount: " + fastAdapter.getSelectedItems().size(), Toast.LENGTH_SHORT).show();
+            return false;
+        });
+
+        fastAdapter.withOnPreLongClickListener((v, adapter, item, position) -> {
+            ActionMode actionMode = mActionModeHelper.onLongClick((AppCompatActivity)getActivity(),position);
+
+            if (actionMode != null) {
+                //we want color our CAB
+                getActivity().findViewById(R.id.toolbar).setBackgroundColor(getResources().getColor(R.color.blue_grey));
+            }
+
+            //if we have no actionMode we do not consume the event
+            return actionMode != null;
+        });
     }
 
 

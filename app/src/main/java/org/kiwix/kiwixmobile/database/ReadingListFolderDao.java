@@ -8,6 +8,7 @@ import org.kiwix.kiwixmobile.database.entity.ReadingListFolders;
 import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
 import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 import org.kiwix.kiwixmobile.readinglists.lists.ReadingListArticleItem;
+import org.kiwix.kiwixmobile.readinglists.lists.ReadingListItem;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -85,11 +86,18 @@ public class ReadingListFolderDao {
         }
     }
 
-    public void deleteFolder(String folderName) {
-        //TODO: when folder is deleted all articles saved in folder should be deleted
-        mDb.deleteWhere(Bookmarks.class, Bookmarks.PARENT_READINGLIST.eq(folderName));
-        mDb.deleteWhere(ReadingListFolders.class, ReadingListFolders.FOLDER_TITLE.eq(folderName));
+    private void deleteFolder(ReadingListItem folder) {
+        mDb.deleteWhere(Bookmarks.class, Bookmarks.PARENT_READINGLIST.eq(folder.getTitle()));
+        mDb.deleteWhere(ReadingListFolders.class, ReadingListFolders.FOLDER_TITLE.eq(folder.getTitle()));
     }
+
+
+    public void deleteFolders(Set<ReadingListItem> folders) {
+        for (ReadingListItem folder : folders) {
+            deleteFolder(folder);
+        }
+    }
+
 
 
     public void deleteAll(){
