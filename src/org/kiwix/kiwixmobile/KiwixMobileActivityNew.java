@@ -117,8 +117,6 @@ public class KiwixMobileActivityNew
 
   private ArrayList<String> bookmarks;
 
-  private KiwixTextToSpeech tts;
-
   private CompatFindActionModeCallback compatCallback;
 
   private TabDrawerAdapter tabDrawerAdapter;
@@ -134,12 +132,6 @@ public class KiwixMobileActivityNew
   @BindView(R.id.toolbar) Toolbar toolbar;
 
   @BindView(R.id.button_backtotop) Button backToTopButton;
-
-  @BindView(R.id.button_stop_tts) Button stopTTSButton;
-
-  @BindView(R.id.button_pause_tts) Button pauseTTSButton;
-
-  @BindView(R.id.tts_controls) LinearLayout TTSControls;
 
   @BindView(R.id.toolbar_layout) RelativeLayout toolbarContainer;
 
@@ -228,7 +220,6 @@ public class KiwixMobileActivityNew
     drawerToggle.syncState();
 
     compatCallback = new CompatFindActionModeCallback(this);
-    setUpTTS();
     documentParser = new DocumentParser(new DocumentParser.SectionsListener() {
       @Override
       public void sectionsLoaded(String title, List<TableDrawerAdapter.DocumentSection> sections) {
@@ -349,58 +340,6 @@ public class KiwixMobileActivityNew
     }
   }
 
-  private void setUpTTS() {
-    tts = new KiwixTextToSpeech(this, () -> {
-      if (menu != null) {
-        menu.findItem(R.id.menu_read_aloud).setVisible(true);
-      }
-    }, new KiwixTextToSpeech.OnSpeakingListener() {
-      @Override
-      public void onSpeakingStarted() {
-        isSpeaking = true;
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            menu.findItem(R.id.menu_read_aloud)
-                .setTitle(createMenuItem(getResources().getString(R.string.menu_read_aloud_stop)));
-            TTSControls.setVisibility(View.VISIBLE);
-          }
-        });
-      }
-
-      @Override
-      public void onSpeakingEnded() {
-        isSpeaking = false;
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            menu.findItem(R.id.menu_read_aloud)
-                .setTitle(createMenuItem(getResources().getString(R.string.menu_read_aloud)));
-            TTSControls.setVisibility(View.GONE);
-            pauseTTSButton.setText(R.string.tts_pause);
-          }
-        });
-      }
-    });
-
-    pauseTTSButton.setOnClickListener(view -> {
-      if (tts.currentTTSTask == null) {
-        tts.stop();
-        return;
-      }
-
-      if (tts.currentTTSTask.paused) {
-        tts.pauseOrResume();
-        pauseTTSButton.setText(R.string.tts_pause);
-      } else {
-        tts.pauseOrResume();
-        pauseTTSButton.setText(R.string.tts_resume);
-      }
-    });
-
-    stopTTSButton.setOnClickListener((View view) -> tts.stop());
-  }
-
   // Reset the Locale and change the font of all TextViews and its subclasses, if necessary
   private void handleLocaleCheck() {
     LanguageUtils.handleLocaleChange(this);
@@ -412,7 +351,6 @@ public class KiwixMobileActivityNew
     super.onDestroy();
     // TODO create a base Activity class that class this.
     FileUtils.deleteCachedFiles(this);
-    tts.shutdown();
   }
 
   @Override protected void setContentView() {
@@ -520,16 +458,6 @@ public class KiwixMobileActivityNew
   }
 
   public void readAloudMenuClick() {
-    if (TTSControls.getVisibility() == View.GONE) {
-      if (isBackToTopEnabled) {
-        backToTopButton.setVisibility(View.INVISIBLE);
-      }
-    } else if (TTSControls.getVisibility() == View.VISIBLE) {
-      if (isBackToTopEnabled) {
-        backToTopButton.setVisibility(View.VISIBLE);
-      }
-    }
-    readAloud();
   }
 
   @Override public void inflateReadAloudMenu(Menu menu) {
@@ -537,7 +465,6 @@ public class KiwixMobileActivityNew
   }
 
   @Override public void readSelection(KiwixWebView currentWebView) {
-    tts.readSelection(currentWebView);
   }
 
   public void showSearchInText(KiwixWebView webView) {
@@ -656,7 +583,7 @@ public class KiwixMobileActivityNew
   }
 
   // Workaround for popup bottom menu on older devices
-  private void styleMenuButtons(Menu m) {
+  public void styleMenuButtons(Menu m) {
     // Find each menu item and set its text colour
     for (int i = 0; i < m.size(); i++) {
       m.getItem(i).setTitle(createMenuItem(m.getItem(i).getTitle().toString()));
@@ -878,10 +805,6 @@ public class KiwixMobileActivityNew
     return openArticle(articleUrl);
   }
 
-  public void readAloud() {
-    tts.readAloud(tabsPresenter.getCurrentWebView());
-  }
-
   public static void updateWidgets(Context context) {
     Intent intent = new Intent(context.getApplicationContext(), KiwixSearchWidget.class);
     intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
@@ -927,7 +850,6 @@ public class KiwixMobileActivityNew
         });
       }
     });
-    tts.initWebView(tabsPresenter.getCurrentWebView());
   }
 
   @Override
@@ -1064,17 +986,6 @@ public class KiwixMobileActivityNew
       return true;
     });
 
-    try {
-      if (tts.isInitialized()) {
-        menu.findItem(R.id.menu_read_aloud).setVisible(true);
-        if (isSpeaking) {
-          menu.findItem(R.id.menu_read_aloud)
-              .setTitle(createMenuItem(getResources().getString(R.string.menu_read_aloud_stop)));
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
     //return menuPresenter.onCreateOptionsMenu(menu);
     return true;
   }
@@ -1399,8 +1310,7 @@ public class KiwixMobileActivityNew
   @Override public void webViewPageChanged(int page, int maxPages) {
     if (isBackToTopEnabled) {
       if (tabsPresenter.getCurrentWebView().getScrollY() > 200) {
-        if (backToTopButton.getVisibility() == View.INVISIBLE
-            && TTSControls.getVisibility() == View.GONE) {
+        if (backToTopButton.getVisibility() == View.INVISIBLE) {
           backToTopButton.setText(R.string.button_backtotop);
           backToTopButton.setVisibility(View.VISIBLE);
 
