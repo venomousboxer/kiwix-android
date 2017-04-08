@@ -5,11 +5,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +46,7 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
     private ArrayList<BookmarkArticle> articles;
     private ActionModeHelper mActionModeHelper;
     private RecyclerView readinglistRecyclerview;
+    private String folderTitle = null;
 
 
     public ReadingListFragment() {
@@ -50,9 +54,23 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_readinglist, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        folderTitle = this.getArguments().getString(FRAGMENT_ARGS_FOLDER_TITLE);
+        setUpToolbar();
+    }
 
+    private void setUpToolbar() {
+        ActionBar toolbar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        if (folderTitle != null && toolbar != null) {
+            toolbar.setTitle(folderTitle);
+        }
     }
 
     @Override
@@ -71,7 +89,7 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
         readinglistRecyclerview = (RecyclerView) view.findViewById(R.id.readinglist_articles_list);
         fastAdapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
-        mActionModeHelper = new ActionModeHelper(fastAdapter, R.menu.menu_bookmarks, new ActionBarCallBack());
+        mActionModeHelper = new ActionModeHelper(fastAdapter, R.menu.actionmenu_readinglist, new ActionBarCallBack());
 
         fastAdapter.withOnClickListener(this);
         fastAdapter.withSelectOnLongClick(false);
@@ -88,13 +106,18 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
 
 
     void loadArticlesOfFolder() {
-        String requestedFolderTitle = this.getArguments().getString(FRAGMENT_ARGS_FOLDER_TITLE);
-        articles = readinglistFoldersDao.getArticlesOfFolder(new ReadinglistFolder(requestedFolderTitle));
+        articles = readinglistFoldersDao.getArticlesOfFolder(new ReadinglistFolder(folderTitle));
         for (BookmarkArticle article: articles) {
             itemAdapter.add(new ReadingListArticleItem(article.getBookmarkTitle()));
         }
     }
 
+
+    private void deleteSelectedItems() {
+        Set<ReadingListArticleItem> selectedItems = fastAdapter.getSelectedItems();
+        readinglistFoldersDao.deleteArticles(selectedItems);
+        loadArticlesOfFolder();
+    }
 
     @Override
     public boolean onClick(View v, IAdapter<ReadingListArticleItem> adapter, ReadingListArticleItem item, int position) {
@@ -145,11 +168,7 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
     }
 
 
-    private void deleteSelectedItems() {
-        Set<ReadingListArticleItem> selectedItems = fastAdapter.getSelectedItems();
-        readinglistFoldersDao.deleteArticles(selectedItems);
-        loadArticlesOfFolder();
-    }
+
 
 
 

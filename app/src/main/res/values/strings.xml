@@ -165,4 +165,6 @@
   <string name="reading_list_save_to">Save to reading list</string>
   <string name="dialog_close_description">close</string>
   <string name="reading_list_create_new">Create new</string>
+  <string name="menu_delete">Delete</string>
+  <string name="menu_sort">Sort</string>
 </resources>
