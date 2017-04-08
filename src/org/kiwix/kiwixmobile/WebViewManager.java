@@ -1,4 +1,4 @@
-package org.kiwix.kiwixmobile.library;
+package org.kiwix.kiwixmobile;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

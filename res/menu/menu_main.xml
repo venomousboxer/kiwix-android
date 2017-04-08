@@ -47,12 +47,6 @@
       app:showAsAction="never"/>
 
   <item
-      android:id="@+id/menu_fullscreen"
-      android:title="@string/menu_fullscreen"
-      android:visible="false"
-      app:showAsAction="never"/>
-
-  <item
       android:id="@+id/menu_read_aloud"
       android:title="@string/menu_read_aloud"
       android:visible="false"

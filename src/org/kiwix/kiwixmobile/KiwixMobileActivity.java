@@ -197,8 +197,6 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
 
   @BindView(R.id.progress_view) AnimatedProgressBar progressBar;
 
-  @BindView(R.id.fullscreen_button) ImageButton exitFullscreenButton;
-
   @BindView(R.id.snackbar_layout) CoordinatorLayout snackbarLayout;
 
   @BindView(R.id.new_tab_button) RelativeLayout newTabButton;
@@ -232,7 +230,7 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
       actionMode = mode;
       Menu menu = mode.getMenu();
       // Inflate custom menu icon.
-      getMenuInflater().inflate(R.menu.menu_webview_action, menu);
+      getMenuInflater().inflate(R.menu.menu_webview_read_aloud, menu);
       readAloudSelection(menu);
     }
     super.onActionModeStarted(mode);
@@ -746,14 +744,6 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
         readAloud();
         break;
 
-      case R.id.menu_fullscreen:
-        if (isFullscreenOpened) {
-          closeFullScreen();
-        } else {
-          openFullScreen();
-        }
-        break;
-
       default:
         break;
     }
@@ -771,7 +761,7 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
   private void openFullScreen() {
 
     toolbarContainer.setVisibility(View.GONE);
-    exitFullscreenButton.setVisibility(View.VISIBLE);
+    //exitFullscreenButton.setVisibility(View.VISIBLE);
     int fullScreenFlag = WindowManager.LayoutParams.FLAG_FULLSCREEN;
     int classicScreenFlag = WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
     getWindow().addFlags(fullScreenFlag);
@@ -791,7 +781,7 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
 
   private void closeFullScreen() {
     toolbarContainer.setVisibility(View.VISIBLE);
-    exitFullscreenButton.setVisibility(View.INVISIBLE);
+    //exitFullscreenButton.setVisibility(View.INVISIBLE);
     int fullScreenFlag = WindowManager.LayoutParams.FLAG_FULLSCREEN;
     int classicScreenFlag = WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
     getWindow().clearFlags(fullScreenFlag);
@@ -938,7 +928,7 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
   private void initAllMenuItems() {
     try {
       menu.findItem(R.id.menu_bookmarks).setVisible(true);
-      menu.findItem(R.id.menu_fullscreen).setVisible(true);
+      //menu.findItem(R.id.menu_fullscreen).setVisible(true);
       menu.findItem(R.id.menu_home).setVisible(true);
       menu.findItem(R.id.menu_randomarticle).setVisible(true);
       menu.findItem(R.id.menu_searchintext).setVisible(true);
@@ -1247,12 +1237,12 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
 
   private void setUpExitFullscreenButton() {
 
-    exitFullscreenButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        closeFullScreen();
-      }
-    });
+    //exitFullscreenButton.setOnClickListener(new View.OnClickListener() {
+    //  @Override
+    //  public void onClick(View v) {
+    //    closeFullScreen();
+    //  }
+    //});
   }
 
   @Override
@@ -1690,7 +1680,7 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
     }
   }
 
-  @Override public void webViewTitleUpdated(String title) {
+  @Override public void refreshTabDrawerAdapter() {
     tabDrawerAdapter.notifyDataSetChanged();
   }
 

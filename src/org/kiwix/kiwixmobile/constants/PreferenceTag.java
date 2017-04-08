@@ -15,8 +15,6 @@ public class PreferenceTag {
 
   public static final String PREF_HIDE_TOOLBAR = "pref_hidetoolbar";
 
-  public static final String PREF_FULLSCREEN = "pref_fullscreen";
-
   public static final String PREF_NEW_TAB_BACKGROUND = "pref_newtab_background";
 
   public static final String PREF_FULL_TEXT_SEARCH = "pref_full_text_search";

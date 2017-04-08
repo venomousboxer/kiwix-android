@@ -1,6 +1,7 @@
 package org.kiwix.kiwixmobile.presenter.callback;
 
 import android.content.DialogInterface;
+import android.view.Menu;
 import org.kiwix.kiwixmobile.ViewCallback;
 import org.kiwix.kiwixmobile.views.web.KiwixWebView;
 import rx.Observable;
@@ -21,10 +22,52 @@ public interface MainViewCallback extends ViewCallback {
 
   Observable<Void> backTabClickListener();
 
-  void selectTab(int position);
-
   KiwixWebView getWebView(String url);
 
   void setUpWebView();
+
+  void setTabDrawerAdapterSelection(int position);
+
+  void removeWebViewFrame();
+
+  KiwixWebView addWebViewToFrame(int position);
+
+  void closeLeftDrawer();
+
+  void loadPrefs();
+
+  void refreshBookmarkSymbol();
+
+  void updateTableOfContents();
+
+  void refreshTabDrawerAdapter();
+
+  void initParser(KiwixWebView webView);
+
+  int getSelectedTabDrawerPosition();
+
+  void showRestoreTabSnackbar(int index);
+
+  boolean openMainPage();
+
+  void showSearchInText(KiwixWebView webView);
+
+  void toggleBookmark();
+
+  void goToBookmarks();
+
+  boolean openRandomArticle();
+
+  void showHelpPage();
+
+  void manageZimFiles(int i);
+
+  void selectSettings();
+
+  void readAloudMenuClick();
+
+  void inflateReadAloudMenu(Menu menu);
+
+  void readSelection(KiwixWebView currentWebView);
 }
 

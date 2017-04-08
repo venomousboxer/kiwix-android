@@ -19,7 +19,7 @@ public interface WebViewCallback {
 
   void webViewProgressChanged(int progress);
 
-  void webViewTitleUpdated(String title);
+  void refreshTabDrawerAdapter();
 
   void webViewPageChanged(int page, int maxPages);
 

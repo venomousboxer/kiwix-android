@@ -6,7 +6,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import org.kiwix.kiwixmobile.library.WebViewManager;
 import org.kiwix.kiwixmobile.views.web.KiwixWebView;
 
 public class TabDrawerAdapter extends RecyclerView.Adapter<TabDrawerAdapter.ViewHolder> {
