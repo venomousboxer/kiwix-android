@@ -8,8 +8,8 @@ public class BookmarkArticle {
    private String bookmarkUrl;
    private String bookmarkTitle;
    private String parentReadinglist;
-   private String ZimId;
-   private String ZimName;
+   private String ZimId = "null";
+   private String ZimName = "null";
 
     public BookmarkArticle(String bookmarkUrl, String bookmarkTitle, String parentReadinglist) {
         this.bookmarkUrl = bookmarkUrl;
@@ -27,6 +27,11 @@ public class BookmarkArticle {
 
   public BookmarkArticle() {
 
+  }
+
+  public BookmarkArticle(String pageUrl, String pageTitle) {
+    this.bookmarkTitle = pageTitle;
+    this.bookmarkUrl = pageUrl;
   }
 
   public void setBookmarkUrl(String bookmarkUrl) {

@@ -16,11 +16,13 @@ import android.widget.FrameLayout;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.mikepenz.fastadapter.FastAdapter;
+import com.mikepenz.fastadapter.IAdapter;
 import com.mikepenz.fastadapter.adapters.ItemAdapter;
 
 import org.kiwix.kiwixmobile.R;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
 import org.kiwix.kiwixmobile.database.ReadingListFolderDao;
+import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
 import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 import org.kiwix.kiwixmobile.readinglists.lists.ReadingListItem;
 
@@ -30,7 +32,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
-public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
+public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment implements FastAdapter.OnClickListener<ReadingListItem> {
 
 
     private FastAdapter<ReadingListItem> fastAdapter;
@@ -41,21 +43,26 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
     private DialogInterface.OnDismissListener dismissListener;
 //    private ReadingListItemCallback listItemCallback = new ReadingListItemCallback();
     private String pageTitle;
+    private String pageUrl;
+
     private ReadingListFolderDao readinglistDao;
-    @BindView(R.id.dialog_add_to_readinglist_layout)
+    @BindView(R.id.snackbar_layout)
     public FrameLayout snackbarLayout;
 
+    private BookmarkArticle currentArticle;
 
 
-    public static AddToReadingListDialog newInstance(@NonNull String title) {
-        return newInstance(title, null);
+    public static AddToReadingListDialog newInstance(String articleTitle, @NonNull String articleUrl) {
+        return newInstance(articleTitle,articleUrl, null);
     }
 
-    public static AddToReadingListDialog newInstance(@NonNull String title,
+    public static AddToReadingListDialog newInstance(@NonNull String articleTitle, String articleUrl,
                                                      @Nullable DialogInterface.OnDismissListener listener) {
         AddToReadingListDialog dialog = new AddToReadingListDialog();
         Bundle args = new Bundle();
-        args.putString("title", title);
+        args.putString("articleTitle", articleTitle);
+        args.putString("articleUrl", articleUrl);
+
         dialog.setArguments(args);
         dialog.setOnDismissListener(listener);
         return dialog;
@@ -64,7 +71,10 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        pageTitle = getArguments().getString("title");
+        Bundle args = getArguments();
+        pageTitle = args.getString("articleTitle");
+        pageUrl = args.getString("articleUrl");
+        currentArticle = new BookmarkArticle(pageUrl,pageTitle);
     }
 
     @Override
@@ -81,6 +91,7 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
 
         fastAdapter.withSelectOnLongClick(false);
         fastAdapter.withSelectable(false);
+        fastAdapter.withOnClickListener(this);
         readingListView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         readingListView.setAdapter(itemAdapter.wrap(fastAdapter));
@@ -89,12 +100,7 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
         createButton.setOnClickListener(createClickListener);
 
         View closeButton = rootView.findViewById(R.id.close_button);
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
+        closeButton.setOnClickListener(v -> dismiss());
 
         updateLists();
         return rootView;
@@ -133,6 +139,15 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
         }
     }
 
+    @Override
+    public boolean onClick(View v, IAdapter<ReadingListItem> adapter, ReadingListItem item, int position) {
+        dismiss();
+        currentArticle.setParentReadinglist(item.getTitle());
+        readinglistDao.saveBookmark(currentArticle);
+        showAddedToListSnackbar();
+        return true;
+    }
+
     private class CreateButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
@@ -146,13 +161,12 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
             .title("Create a new reading list")
             .content("Name your folder:")
             .inputType(InputType.TYPE_CLASS_TEXT)
-            .input(null, "My readinglist", new MaterialDialog.InputCallback() {
-                @Override
-                public void onInput(MaterialDialog dialog, CharSequence input) {
-                    ReadinglistFolder newReadinlistFolder = new ReadinglistFolder(input.toString());
-                    readinglistDao.saveFolder(newReadinlistFolder);
-                    showAddedToListSnackbar();
-                }
+            .input(null, "My readinglist", (dialog, input) -> {
+                ReadinglistFolder newReadinlistFolder = new ReadinglistFolder(input.toString());
+                readinglistDao.saveFolder(newReadinlistFolder);
+                currentArticle.setParentReadinglist(input.toString());
+                readinglistDao.saveBookmark(currentArticle);
+                showAddedToListSnackbar();
             }).show();
 
     }
@@ -160,10 +174,11 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment {
 
 
     private void showAddedToListSnackbar() {
-        Snackbar addedToListSnackbar =
-            Snackbar.make(snackbarLayout, "Article added to list", Snackbar.LENGTH_LONG);
-        addedToListSnackbar.setActionTextColor(getResources().getColor(R.color.white));
-        addedToListSnackbar.show();
+        // TODO: after main activity's MVPed insert presenter on instantiation which will be able to trigger snackbar
+//        Snackbar addedToListSnackbar =
+//            Snackbar.make(, "Article added to list", Snackbar.LENGTH_LONG);
+//        addedToListSnackbar.setActionTextColor(getResources().getColor(R.color.white));
+//        addedToListSnackbar.show();
     }
 
 

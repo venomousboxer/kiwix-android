@@ -1109,13 +1109,17 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   public void toggleBookmark() {
     //Check maybe need refresh
 
-    FragmentManager fm = getSupportFragmentManager();
-    AddToReadingListDialog addToReadingListDialog = AddToReadingListDialog.newInstance("Hello");
-    addToReadingListDialog.show(fm, BOTTOM_SHEET_FRAGMENT_TAG);
+    String articleUrl = getCurrentWebView().getUrl();
+    String articleTitle = getCurrentWebView().getTitle();
+    if (articleUrl != null) {
+      FragmentManager fm = getSupportFragmentManager();
+      AddToReadingListDialog addToReadingListDialog = AddToReadingListDialog.newInstance(articleTitle,articleUrl);
+      addToReadingListDialog.show(fm, BOTTOM_SHEET_FRAGMENT_TAG);
+    }
 
 
-//    String article = getCurrentWebView().getUrl();
-//    boolean isBookmark = false;
+
+
 //    if (article != null && !bookmarks.contains(article)) {
 //      saveBookmark(article, getCurrentWebView().getTitle());
 //      isBookmark = true;
@@ -1123,8 +1127,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 //      deleteBookmark(article);
 //      isBookmark = false;
 //    }
-//    popBookmarkSnackbar(isBookmark);
-//    supportInvalidateOptionsMenu();
+    supportInvalidateOptionsMenu();
   }
 
   private void popBookmarkSnackbar(boolean isBookmark) {
