@@ -167,4 +167,10 @@
   <string name="reading_list_create_new">Create new</string>
   <string name="menu_delete">Delete</string>
   <string name="menu_sort">Sort</string>
+  <string name="reading_lists_onboarding_intro">Create reading lists from articles you want to read later!</string>
+  <string name="reading_lists_onboarding_for_example">For example</string>
+  <string name="reading_lists_onboarding_example1">Places to visit</string>
+  <string name="reading_lists_onboarding_example2">Favorite animals</string>
+  <string name="reading_lists_onboarding_example3">Space!</string>
+  <string name="reading_lists_onboarding_got_it">Got it</string>
 </resources>
