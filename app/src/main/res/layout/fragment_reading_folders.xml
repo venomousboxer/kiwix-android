@@ -5,12 +5,24 @@
              tools:context="org.kiwix.kiwixmobile.readinglists.ReadingFoldersFragment">
 
 
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/readinglist_folders_list">
 
-    </android.support.v7.widget.RecyclerView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="2dp"
+        android:layout_marginTop="2dp">
+
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/readinglist_folders_list">
+
+        </android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
+
+
 
 
 
