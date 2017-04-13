@@ -87,7 +87,8 @@ public class TabsPresenter extends ActivityLightCycleDispatcher<MainViewCallback
     callback.setTabDrawerAdapterSelection(currentWebViewIndex);
     callback.closeLeftDrawer();
     callback.loadPrefs();
-    callback.refreshBookmarkSymbol();
+    // TODO FIX
+    //refreshBookmarkSymbol();
     callback.updateTableOfContents();
 
     boolean isToolbarHidden = preferences.getBoolean(PREF_HIDE_TOOLBAR, false);

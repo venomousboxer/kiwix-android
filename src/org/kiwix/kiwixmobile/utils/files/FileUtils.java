@@ -104,7 +104,7 @@ public class FileUtils {
    * @param deleteFileOnMismatch if the file sizes do not match, delete the file
    * @return true if it does exist, false otherwise
    */
-  static public boolean doesFileExist(String fileName, long fileSize,
+  static public boolean fileExists(String fileName, long fileSize,
                                       boolean deleteFileOnMismatch) {
 
     Log.d(TAG_KIWIX, "Looking for '" + fileName + "' with size=" + fileSize);
@@ -131,7 +131,7 @@ public class FileUtils {
     return false;
   }
 
-  static public String getLocalFilePathByUri(final Context ctx, final Uri uri) {
+  static public String getFilePathByUri(final Context ctx, final Uri uri) {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && DocumentsContract.isDocumentUri(ctx, uri)) {
       if ("com.android.externalstorage.documents".equals(uri.getAuthority())) {

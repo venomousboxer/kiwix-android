@@ -36,8 +36,6 @@ public interface MainViewCallback extends ViewCallback {
 
   void loadPrefs();
 
-  void refreshBookmarkSymbol();
-
   void updateTableOfContents();
 
   void refreshTabDrawerAdapter();
@@ -69,5 +67,11 @@ public interface MainViewCallback extends ViewCallback {
   void inflateReadAloudMenu(Menu menu);
 
   void readSelection(KiwixWebView currentWebView);
+
+  void styleMenuButtons(Menu menu);
+
+  void openSearchActivity();
+
+  void refreshNavigationButtons();
 }
 

@@ -20,4 +20,6 @@ public class IntentExtra {
   public static final String EXTRA_NOTIFICATION_ID = "notificationID";
 
   public static final String EXTRA_LIBRARY = "library";
+
+  public static final String EXTRA_BOOKMARK_CLICKED = "bookmarkClicked";
 }

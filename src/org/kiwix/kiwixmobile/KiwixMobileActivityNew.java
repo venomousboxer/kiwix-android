@@ -1,7 +1,6 @@
 package org.kiwix.kiwixmobile;
 
 import android.Manifest;
-import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.*;
 import android.content.DialogInterface.OnClickListener;
@@ -91,19 +90,19 @@ public class KiwixMobileActivityNew
 
   private boolean isBackToTopEnabled = false;
 
+
+  // TODO: What's the differnce between this and the one below?
   private boolean isToolbarHidden = false;
 
   private boolean isHideToolbar = false;
-
-  private boolean isSpeaking = false;
 
   protected boolean requestClearHistoryAfterLoad = false;
 
   private boolean isOpenNewTabInBackground;
 
-  public static boolean nightMode;
+  public boolean nightMode;
 
-  public static boolean refresh;
+  public boolean refresh;
 
   private static Uri KIWIX_LOCAL_MARKET_URI;
 
@@ -122,8 +121,6 @@ public class KiwixMobileActivityNew
   private TabDrawerAdapter tabDrawerAdapter;
 
   private File file;
-
-  private ActionMode actionMode = null;
 
   private boolean isFirstRun;
 
@@ -235,7 +232,7 @@ public class KiwixMobileActivityNew
       }
     });
 
-    manageExternalLaunchAndRestoringViewState();
+    manageExternalLaunch();
     loadPrefs();
     updateTitle(ZimContentProvider.getZimFileTitle());
 
@@ -507,57 +504,44 @@ public class KiwixMobileActivityNew
   public boolean openZimFile(File file, boolean clearHistory) {
     if (file.canRead() || Build.VERSION.SDK_INT < 19 || (Constants.IS_CUSTOM_APP
         && Build.VERSION.SDK_INT != 23)) {
+
       if (file.exists()) {
         if (ZimContentProvider.setZimFile(file.getAbsolutePath()) != null) {
 
-          if (clearHistory) {
-            requestClearHistoryAfterLoad = true;
-          }
-          if (menu != null) {
-            // TODO FIX THIS
-            //initAllMenuItems();
-          } else {
-            // Menu may not be initialized yet. In this case
-            // signal to menu create to show
-            //requestInitAllMenuItems = true;
-          }
+          if (clearHistory) requestClearHistoryAfterLoad = true;
 
-          //Bookmarks
           bookmarks = new ArrayList<>();
           bookmarksDao = new BookmarksDao(KiwixDatabase.getInstance(this));
-          bookmarks =
-              bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
+          String name = ZimContentProvider.getName();
+          String id = ZimContentProvider.getId();
+          bookmarks = bookmarksDao.getBookmarks(id, name);
 
           openMainPage();
           refreshBookmarks();
           return true;
-        } else {
-          Toast.makeText(this, getResources().getString(R.string.error_fileinvalid),
-              Toast.LENGTH_LONG).show();
-          showHelpPage();
         }
-      } else {
-        Log.e(TAG_KIWIX, "ZIM file doesn't exist at " + file.getAbsolutePath());
 
-        Toast.makeText(this, getResources().getString(R.string.error_filenotfound), Toast.LENGTH_LONG)
-            .show();
+        Toast.makeText(this, getString(R.string.error_fileinvalid), Toast.LENGTH_LONG).show();
         showHelpPage();
+        return false;
       }
-      return false;
-    } else {
-      this.file = file;
-      ActivityCompat.requestPermissions(this,
-          new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
-          REQUEST_STORAGE_PERMISSION);
-      if (Constants.IS_CUSTOM_APP && Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
-        Toast.makeText(this, getResources().getString(R.string.request_storage_custom), Toast.LENGTH_LONG)
-            .show();
-      } else {
-        Toast.makeText(this, getResources().getString(R.string.request_storage), Toast.LENGTH_LONG)
-            .show();
-      }
+
+      // File does not exist
+      Toast.makeText(this, getString(R.string.error_filenotfound), Toast.LENGTH_LONG).show();
+      showHelpPage();
       return false;
     }
+
+    this.file = file;
+    ActivityCompat.requestPermissions(this, new String[] {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }, REQUEST_STORAGE_PERMISSION);
+    if (Constants.IS_CUSTOM_APP && Build.VERSION.SDK_INT == Build.VERSION_CODES.M) {
+      Toast.makeText(this, getString(R.string.request_storage_custom), Toast.LENGTH_LONG).show();
+    } else {
+      Toast.makeText(this, getString(R.string.request_storage), Toast.LENGTH_LONG).show();
+    }
+    return false;
   }
 
   @Override
@@ -691,7 +675,7 @@ public class KiwixMobileActivityNew
       recreate();
     }
     if (menu != null) {
-      refreshBookmarkSymbol();
+      menuPresenter.refreshBookmarkSymbol();
     }
     if (getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE) {
       if (menu != null) {
@@ -827,18 +811,7 @@ public class KiwixMobileActivityNew
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       WebView.setWebContentsDebuggingEnabled(true);
     }
-
-    // webView.getSettings().setLoadsImagesAutomatically(false);
-    // Does not make much sense to cache data from zim files.(Not clear whether
-    // this actually has any effect)
     tabsPresenter.getCurrentWebView().getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-
-    // Should basically resemble the behavior when setWebClient not done
-    // (i.p. internal urls load in webview, external urls in browser)
-    // as currently no custom setWebViewClient required it is commented
-    // However, it must notify the bookmark system when a page is finished loading
-    // so that it can refresh the menu.
-
     backToTopButton.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -855,21 +828,7 @@ public class KiwixMobileActivityNew
   @Override
   public void onConfigurationChanged(Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
-    toggleActionItemsConfig();
-  }
-
-  void toggleActionItemsConfig() {
-    if (menu != null) {
-      MenuItem random = menu.findItem(R.id.menu_randomarticle);
-      MenuItem home = menu.findItem(R.id.menu_home);
-      if (getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE) {
-        random.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        home.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-      } else {
-        random.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
-        home.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
-      }
-    }
+    menuPresenter.toggleActionItemsConfig();
   }
 
   public void searchForTitle(String title) {
@@ -932,7 +891,7 @@ public class KiwixMobileActivityNew
 
       case REQUEST_BOOKMARK_CHOSEN:
         if (resultCode == RESULT_OK) {
-          boolean itemClicked = data.getBooleanExtra("bookmarkClicked", false);
+          boolean itemClicked = data.getBooleanExtra(EXTRA_BOOKMARK_CLICKED, false);
           if (ZimContentProvider.getId() == null) return;
 
           //Bookmarks
@@ -953,7 +912,7 @@ public class KiwixMobileActivityNew
             }
           }
           if (menu != null) {
-            refreshBookmarkSymbol();
+            menuPresenter.refreshBookmarkSymbol();
           }
         }
         break;
@@ -968,71 +927,14 @@ public class KiwixMobileActivityNew
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.menu_main, menu);
-    this.menu = menu;
-    styleMenuButtons(menu);
-    if (Constants.IS_CUSTOM_APP) {
-      menu.findItem(R.id.menu_help).setVisible(false);
-    }
-
-    menu.findItem(R.id.menu_bookmarks).setVisible(true);
-    menu.findItem(R.id.menu_home).setVisible(true);
-    menu.findItem(R.id.menu_randomarticle).setVisible(true);
-    menu.findItem(R.id.menu_searchintext).setVisible(true);
-
-    MenuItem searchItem = menu.findItem(R.id.menu_search);
-    searchItem.setVisible(true);
-    searchItem.setOnMenuItemClickListener(item -> {
-      openSearchActivity();
-      return true;
-    });
-
-    //return menuPresenter.onCreateOptionsMenu(menu);
-    return true;
+    return menuPresenter.onCreateOptionsMenu(menu);
   }
 
   // This method refreshes the menu for the bookmark system.
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
     super.onPrepareOptionsMenu(menu);
-    toggleActionItemsConfig();
-    refreshBookmarkSymbol();
-    refreshNavigationButtons();
-
-    if (tabsPresenter.getCurrentWebView().getUrl() == null || tabsPresenter.getCurrentWebView()
-        .getUrl()
-        .equals("file:///android_res/raw/help.html")) {
-      menu.findItem(R.id.menu_read_aloud).setVisible(false);
-    } else {
-      menu.findItem(R.id.menu_read_aloud).setVisible(true);
-    }
-
-    return true;
-  }
-
-  public void refreshBookmarkSymbol() { // Checks if current webview is in bookmarks array
-    if (menu == null) return;
-    if (bookmarks == null || bookmarks.size() == 0) {
-      bookmarksDao = new BookmarksDao(KiwixDatabase.getInstance(this));
-      bookmarks =
-          bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
-    }
-    if (menu.findItem(R.id.menu_bookmarks) != null &&
-        tabsPresenter.getCurrentWebView().getUrl() != null &&
-        ZimContentProvider.getId() != null &&
-        !tabsPresenter.getCurrentWebView().getUrl().equals("file:///android_res/raw/help.html")) {
-      menu.findItem(R.id.menu_bookmarks)
-          .setEnabled(true)
-          .setIcon(
-              bookmarks.contains(tabsPresenter.getCurrentWebView().getUrl())
-                  ? R.drawable.action_bookmark_active
-                  : R.drawable.action_bookmark)
-          .getIcon().setAlpha(255);
-    } else {
-      menu.findItem(R.id.menu_bookmarks)
-          .setEnabled(false)
-          .setIcon(R.drawable.action_bookmark)
-          .getIcon().setAlpha(130);
-    }
+    return menuPresenter.onPrepareOptionsMenu(menu);
   }
 
   public void refreshNavigationButtons() {
@@ -1148,100 +1050,85 @@ public class KiwixMobileActivityNew
     }
   }
 
-  private void manageExternalLaunchAndRestoringViewState() {
+  private void manageExternalLaunch() {
 
+    // started from a file manager
     if (getIntent().getData() != null) {
-      String filePath =
-          FileUtils.getLocalFilePathByUri(getApplicationContext(), getIntent().getData());
+      String filePath = FileUtils.getFilePathByUri(getApplicationContext(), getIntent().getData());
 
       if (filePath == null) {
-        Toast.makeText(KiwixMobileActivityNew.this, getString(R.string.error_filenotfound), Toast.LENGTH_LONG)
-            .show();
+        Toast.makeText(this, getString(R.string.error_filenotfound), Toast.LENGTH_LONG).show();
         return;
       }
-
-      Log.d(TAG_KIWIX, " Kiwix started from a filemanager. Intent filePath: "
-          + filePath
-          + " -> open this zimfile and load menu_main page");
       openZimFile(new File(filePath), false);
-    } else {
-      String zimFile = preferences.getString(PREF_CURRENT_FILE, null);
-      if (zimFile != null && new File(zimFile).exists()) {
-        Log.d(TAG_KIWIX,
-            " Kiwix normal start, zimFile loaded last time -> Open last used zimFile " + zimFile);
-        restoreTabStates();
-        // Alternative would be to restore webView state. But more effort to implement, and actually
-        // fits better normal android behavior if after closing app ("back" button) state is not maintained.
-      } else {
+      return;
+    }
 
-        if (Constants.IS_CUSTOM_APP) {
-          Log.d(TAG_KIWIX, "Kiwix Custom App starting for the first time. Check Companion ZIM.");
+    // Load last opened file from preferences, if it exists
+    String zimFile = preferences.getString(PREF_CURRENT_FILE, null);
+    if (zimFile != null && new File(zimFile).exists()) {
+      restoreTabStates();
+      return;
+    }
 
-          String currentLocaleCode = Locale.getDefault().toString();
-          // Custom App recommends to start off a specific language
-          if (Constants.CUSTOM_APP_ENFORCED_LANG.length() > 0 && !Constants.CUSTOM_APP_ENFORCED_LANG
-              .equals(currentLocaleCode)) {
+    // Custom app starting for the first time. Check Companion ZIM.
+    if (Constants.IS_CUSTOM_APP) {
 
-            // change the locale machinery
-            LanguageUtils.handleLocaleChange(this, Constants.CUSTOM_APP_ENFORCED_LANG);
+      String currentLocaleCode = Locale.getDefault().toString();
+      // Custom App recommends to start off a specific language
+      if (Constants.CUSTOM_APP_ENFORCED_LANG.length() > 0
+          && !Constants.CUSTOM_APP_ENFORCED_LANG.equals(currentLocaleCode)) {
 
-            // save new locale into preferences for next startup
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(PREF_LANGUAGE_CHOOSER, Constants.CUSTOM_APP_ENFORCED_LANG);
-            editor.apply();
+        // change the locale machinery
+        LanguageUtils.handleLocaleChange(this, Constants.CUSTOM_APP_ENFORCED_LANG);
 
-            // restart activity for new locale to take effect
-            this.setResult(1236);
-            this.finish();
-            this.startActivity(new Intent(this, this.getClass()));
-          }
+        // save new locale into preferences for next startup
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(PREF_LANGUAGE_CHOOSER, Constants.CUSTOM_APP_ENFORCED_LANG);
+        editor.apply();
 
-          String filePath = "";
-          if (Constants.CUSTOM_APP_HAS_EMBEDDED_ZIM) {
-            String appPath = getPackageResourcePath();
-            File libDir = new File(appPath.substring(0, appPath.lastIndexOf("/")) + "/lib/");
-            if (libDir.exists() && libDir.listFiles().length > 0) {
-              filePath = libDir.listFiles()[0].getPath() + "/" + Constants.CUSTOM_APP_ZIM_FILE_NAME;
-            }
-            if (filePath.isEmpty() || !new File(filePath).exists()) {
-              filePath = String.format("/data/data/%s/lib/%s", Constants.CUSTOM_APP_ID,
-                  Constants.CUSTOM_APP_ZIM_FILE_NAME);
-            }
-          } else {
-            String fileName = FileUtils.getExpansionAPKFileName(true);
-            filePath = FileUtils.generateSaveFileName(fileName);
-          }
-
-          if (!FileUtils.doesFileExist(filePath, Constants.CUSTOM_APP_ZIM_FILE_SIZE, false)) {
-
-            AlertDialog.Builder zimFileMissingBuilder =
-                new AlertDialog.Builder(this, dialogStyle());
-            zimFileMissingBuilder.setTitle(R.string.app_name);
-            zimFileMissingBuilder.setMessage(R.string.customapp_missing_content);
-            zimFileMissingBuilder.setIcon(R.mipmap.kiwix_icon);
-            final Activity activity = this;
-            zimFileMissingBuilder.setPositiveButton(getString(R.string.go_to_play_store),
-                new OnClickListener() {
-                  public void onClick(DialogInterface dialog, int which) {
-                    String market_uri = "market://details?id=" + Constants.CUSTOM_APP_ID;
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setData(Uri.parse(market_uri));
-                    startActivity(intent);
-                    activity.finish();
-                  }
-                });
-            zimFileMissingBuilder.setCancelable(false);
-            AlertDialog zimFileMissingDialog = zimFileMissingBuilder.create();
-            zimFileMissingDialog.show();
-          } else {
-            openZimFile(new File(filePath), true);
-          }
-        } else {
-          Log.d(TAG_KIWIX,
-              " Kiwix normal start, no zimFile loaded last time  -> display help page");
-          showHelpPage();
-        }
+        // restart activity for new locale to take effect
+        setResult(RESULT_RESTART);
+        finish();
+        startActivity(new Intent(this, this.getClass()));
       }
+
+      String filePath = "";
+      if (Constants.CUSTOM_APP_HAS_EMBEDDED_ZIM) {
+        String appPath = getPackageResourcePath();
+        File libDir = new File(appPath.substring(0, appPath.lastIndexOf("/")) + "/lib/");
+        if (libDir.exists() && libDir.listFiles().length > 0) {
+          filePath = libDir.listFiles()[0].getPath() + "/" + Constants.CUSTOM_APP_ZIM_FILE_NAME;
+        }
+        if (filePath.isEmpty() || !new File(filePath).exists()) {
+          filePath = String.format("/data/data/%s/lib/%s", Constants.CUSTOM_APP_ID,
+              Constants.CUSTOM_APP_ZIM_FILE_NAME);
+        }
+      } else {
+        String fileName = FileUtils.getExpansionAPKFileName(true);
+        filePath = FileUtils.generateSaveFileName(fileName);
+      }
+
+      if (!FileUtils.fileExists(filePath, Constants.CUSTOM_APP_ZIM_FILE_SIZE, false)) {
+        new AlertDialog.Builder(this, dialogStyle())
+            .setTitle(R.string.app_name)
+            .setMessage(R.string.customapp_missing_content)
+            .setIcon(R.mipmap.kiwix_icon)
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.go_to_play_store),
+                (dialogInterface, which) -> {
+                  String market_uri = "market://details?id=" + Constants.CUSTOM_APP_ID;
+                  Intent intent = new Intent(Intent.ACTION_VIEW);
+                  intent.setData(Uri.parse(market_uri));
+                  startActivity(intent);
+                  KiwixMobileActivityNew.this.finish();
+                })
+            .create().show();
+      } else {
+        openZimFile(new File(filePath), true);
+      }
+    } else {
+      showHelpPage();
     }
   }
 
@@ -1271,7 +1158,7 @@ public class KiwixMobileActivityNew
     tabDrawerAdapter.notifyDataSetChanged();
 
     if (menu != null)
-      refreshBookmarkSymbol();
+      menuPresenter.refreshBookmarkSymbol();
   }
 
   @Override public void webViewFailedLoading(String url) {

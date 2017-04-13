@@ -1537,7 +1537,7 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
   private void manageExternalLaunchAndRestoringViewState() {
 
     if (getIntent().getData() != null) {
-      String filePath = FileUtils.getLocalFilePathByUri(getApplicationContext(), getIntent().getData());
+      String filePath = FileUtils.getFilePathByUri(getApplicationContext(), getIntent().getData());
 
       if (filePath == null) {
         Toast.makeText(KiwixMobileActivity.this, getString(R.string.error_filenotfound), Toast.LENGTH_LONG).show();
@@ -1599,7 +1599,7 @@ public class KiwixMobileActivity extends AppCompatActivity implements WebViewCal
             filePath = FileUtils.generateSaveFileName(fileName);
           }
 
-          if (!FileUtils.doesFileExist(filePath, Constants.CUSTOM_APP_ZIM_FILE_SIZE, false)) {
+          if (!FileUtils.fileExists(filePath, Constants.CUSTOM_APP_ZIM_FILE_SIZE, false)) {
 
             AlertDialog.Builder zimFileMissingBuilder = new AlertDialog.Builder(this, dialogStyle());
             zimFileMissingBuilder.setTitle(R.string.app_name);
