@@ -16,6 +16,10 @@ import android.util.Pair;
 import android.util.SparseArray;
 import android.util.SparseIntArray;
 import android.widget.Toast;
+
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -65,6 +69,7 @@ public class DownloadService extends Service {
   public static BookDao bookDao;
   private static DownloadFragment downloadFragment;
   Handler handler = new Handler(Looper.getMainLooper());
+  Tracker tracker;
 
   public static void setDownloadFragment(DownloadFragment dFragment) {
     downloadFragment = dFragment;
@@ -86,6 +91,8 @@ public class DownloadService extends Service {
     KIWIX_ROOT = checkWritable(KIWIX_ROOT);
 
     super.onCreate();
+    KiwixApplication application = (KiwixApplication) getApplication();
+    tracker = application.getDefaultTracker();
   }
 
   @Override
@@ -220,6 +227,12 @@ public class DownloadService extends Service {
           if (progress == 100) {
             notification.get(notificationID).setOngoing(false);
             notification.get(notificationID).setContentTitle(notificationTitle + " " + getResources().getString(R.string.zim_file_downloaded));
+
+            tracker.setScreenName("DownloadService");
+            tracker.send(new HitBuilders.EventBuilder()
+              .setCategory("Download")
+              .setAction(notificationTitle)
+              .build());
             final Intent target = new Intent(this, KiwixMobileActivity.class);
             target.putExtra("zimFile", KIWIX_ROOT + StorageUtils.getFileNameFromUrl(book.getUrl()));
             target.putExtra("notificationID", notificationID);

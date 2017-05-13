@@ -16,6 +16,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,8 +27,13 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import java.util.ArrayList;
 
+import org.kiwix.kiwixmobile.KiwixApplication;
 import org.kiwix.kiwixmobile.KiwixMobileActivity;
 import org.kiwix.kiwixmobile.zim_manager.library_view.LibraryFragment;
 import org.kiwix.kiwixmobile.R;
@@ -40,6 +46,8 @@ import static org.kiwix.kiwixmobile.utils.StyleUtils.dialogStyle;
 public class ZimManageActivity extends AppCompatActivity {
 
   public static final String TAB_EXTRA = "TAB";
+
+  private static final String TAG = "KiwixZimManageActivity";
   /**
    * The {@link android.support.v4.view.PagerAdapter} that will provide
    * fragments for each of the sections. We use a
@@ -67,6 +75,8 @@ public class ZimManageActivity extends AppCompatActivity {
 
   public SearchView searchView;
 
+  private Tracker tracker;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -75,6 +85,8 @@ public class ZimManageActivity extends AppCompatActivity {
     }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.zim_manager);
+    KiwixApplication application = (KiwixApplication) getApplication();
+    tracker = application.getDefaultTracker();
 
     setUpToolbar();
 
@@ -109,6 +121,14 @@ public class ZimManageActivity extends AppCompatActivity {
     });
   }
 
+  @Override
+  public void onResume() {
+    super.onResume();
+
+    Log.i(TAG, "GAv4:ZimManageActivity");
+    tracker.setScreenName("ZimManageActivity");
+    tracker.send(new HitBuilders.ScreenViewBuilder().build());
+  }
   private void updateMenu(int position) {
     if (searchItem == null)
       return;

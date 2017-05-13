@@ -73,6 +73,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import java.io.File;
@@ -219,6 +223,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   private BookmarksDao bookmarksDao;
 
+  private Tracker tracker;
+
   @BindView(R.id.toolbar) Toolbar toolbar;
 
   @BindView(R.id.button_backtotop) Button backToTopButton;
@@ -305,6 +311,8 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       setTheme(R.style.AppTheme_Night);
     }
     super.onCreate(savedInstanceState);
+    KiwixApplication application = (KiwixApplication) getApplication();
+    tracker = application.getDefaultTracker();
     handleLocaleCheck();
     setContentView(R.layout.main);
     ButterKnife.bind(this);
@@ -1096,6 +1104,11 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   @Override
   public void onResume() {
     super.onResume();
+    // Julian Harty generating the first event for GAv4
+    Log.i(TAG_KIWIX, "GAv4:KiwixMobileActivity");
+    tracker.setScreenName("KiwixMobileActivity");
+    tracker.send(new HitBuilders.ScreenViewBuilder().build());
+
     invalidateOptionsMenu();
     if (wasHideToolbar != isHideToolbar) {
       wasHideToolbar = isHideToolbar;

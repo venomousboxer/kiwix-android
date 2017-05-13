@@ -35,16 +35,22 @@ import android.preference.PreferenceScreen;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.webkit.WebView;
 import android.widget.BaseAdapter;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
+
 import eu.mhutti1.utils.storage.StorageDevice;
 import eu.mhutti1.utils.storage.StorageSelectDialog;
 import java.io.File;
 import java.util.Locale;
 import org.kiwix.kiwixmobile.BuildConfig;
+import org.kiwix.kiwixmobile.KiwixApplication;
 import org.kiwix.kiwixmobile.KiwixMobileActivity;
 import org.kiwix.kiwixmobile.zim_manager.library_view.LibraryFragment;
 import org.kiwix.kiwixmobile.R;
@@ -81,9 +87,13 @@ public class KiwixSettingsActivity extends AppCompatActivity {
 
   public static final String PREF_HIDETOOLBAR = "pref_hidetoolbar";
 
+  private static final String TAG = "KiwixSettingsActivity";
+
   public static String zimFile;
 
   public static boolean allHistoryCleared = false;
+
+  private Tracker tracker;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -93,6 +103,8 @@ public class KiwixSettingsActivity extends AppCompatActivity {
     }
     super.onCreate(savedInstanceState);
     setContentView(R.layout.settings);
+    KiwixApplication application = (KiwixApplication) getApplication();
+    tracker = application.getDefaultTracker();
 
     allHistoryCleared = false;
     zimFile = getIntent().getStringExtra("zim_file");
@@ -105,6 +117,13 @@ public class KiwixSettingsActivity extends AppCompatActivity {
     setUpToolbar();
   }
 
+  @Override
+  public void onResume() {
+    super.onResume();
+    Log.i(TAG, "GAv4:KiwixSettingsActivity");
+    tracker.setScreenName("KiwixSettingsActivity");
+    tracker.send(new HitBuilders.ScreenViewBuilder().build());
+  }
 
   @Override
   public void onBackPressed() {
