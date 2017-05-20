@@ -32,7 +32,8 @@ public class ReadingListFolderDao {
     public ArrayList<BookmarkArticle> getArticlesOfFolder(ReadinglistFolder folder) {
         SquidCursor<Bookmarks> articlesInFolderCursor = mDb.query(
                 Bookmarks.class,
-                Query.selectDistinct(Bookmarks.BOOKMARK_TITLE).where(Bookmarks.PARENT_READINGLIST.eq(folder.getFolderTitle()))
+                Query.selectDistinct(Bookmarks.BOOKMARK_TITLE).selectMore(Bookmarks.BOOKMARK_URL, Bookmarks.PARENT_READINGLIST)
+                    .where(Bookmarks.PARENT_READINGLIST.eq(folder.getFolderTitle()))
                         .orderBy(Bookmarks.BOOKMARK_TITLE.asc()));
         ArrayList<BookmarkArticle> result = new ArrayList<>();
         try {
