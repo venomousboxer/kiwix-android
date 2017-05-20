@@ -41,7 +41,6 @@ import java.util.Set;
  */
 public class ReadingListFragment extends Fragment implements FastAdapter.OnClickListener<ReadingListArticleItem> {
 
-
     private FastAdapter<ReadingListArticleItem> fastAdapter;
     private ItemAdapter<ReadingListArticleItem> itemAdapter;
     private final String FRAGMENT_ARGS_FOLDER_TITLE = "requested_folder_title";

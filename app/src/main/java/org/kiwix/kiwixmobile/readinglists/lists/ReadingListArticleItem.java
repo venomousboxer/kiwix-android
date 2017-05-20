@@ -39,7 +39,7 @@ public class ReadingListArticleItem extends AbstractItem<ReadingListArticleItem,
     //The layout to be used for this type of item
     @Override
     public int getLayoutRes() {
-        return R.layout.item_reading_list_folder;
+        return R.layout.item_reading_list_article;
     }
 
     //The logic to bind your data to the view
@@ -48,7 +48,9 @@ public class ReadingListArticleItem extends AbstractItem<ReadingListArticleItem,
     public void bindView(ViewHolder holder, List<Object> payloads) {
         super.bindView(holder, payloads);
 
-        holder.title.setText(this.title);
+        if (holder.title != null) {
+            holder.title.setText(this.title);
+        }
     }
 
     @Override
@@ -56,10 +58,6 @@ public class ReadingListArticleItem extends AbstractItem<ReadingListArticleItem,
         super.unbindView(holder);
     }
 
-
-    //reset the view here (this is an optional method, but recommended)
-
-    //The viewHolder used for this item. This viewHolder is always reused by the RecyclerView so scrolling is blazing fast
     protected static class ViewHolder extends RecyclerView.ViewHolder {
         protected TextView title;
 
