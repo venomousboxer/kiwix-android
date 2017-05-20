@@ -173,4 +173,7 @@
   <string name="reading_lists_onboarding_example2">Favorite animals</string>
   <string name="reading_lists_onboarding_example3">Space!</string>
   <string name="reading_lists_onboarding_got_it">Got it</string>
+  <string name="delete_tab">Delete Tab</string>
+  <string name="next">Next</string>
+  <string name="previous">Previous</string>
 </resources>

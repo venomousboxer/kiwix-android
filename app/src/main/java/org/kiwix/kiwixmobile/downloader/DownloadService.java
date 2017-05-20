@@ -1,5 +1,7 @@
 package org.kiwix.kiwixmobile.downloader;
 
+import static org.kiwix.kiwixmobile.utils.files.FileUtils.getCurrentSize;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -28,6 +30,7 @@ import okhttp3.Response;
 import okio.BufferedSource;
 import org.kiwix.kiwixmobile.KiwixApplication;
 import org.kiwix.kiwixmobile.KiwixMobileActivity;
+import org.kiwix.kiwixmobile.utils.TestingUtils;
 import org.kiwix.kiwixmobile.zim_manager.library_view.LibraryFragment;
 import org.kiwix.kiwixmobile.R;
 import org.kiwix.kiwixmobile.database.BookDao;
@@ -46,6 +49,8 @@ public class DownloadService extends Service {
   @Inject NotificationManager notificationManager;
 
   private static String SD_CARD;
+  // 1024 / 100
+  private static double BOOK_SIZE_OFFSET = 10.24;
   public static String KIWIX_ROOT;
   public static final int PLAY = 1;
   public static final int PAUSE = 2;
@@ -210,6 +215,14 @@ public class DownloadService extends Service {
 
   private void downloadBook(String url, int notificationID, LibraryNetworkEntity.Book book) {
     downloadFragment.addDownload(notificationID, book, KIWIX_ROOT + StorageUtils.getFileNameFromUrl(book.getUrl()));
+    TestingUtils.bindResource(DownloadService.class);
+    if (book.file != null && (book.file.exists() || new File(book.file.getPath() + ".part").exists())) {
+      // Calculate initial download progress
+      int initial = (int) (getCurrentSize(book) / (Long.valueOf(book.getSize()) * BOOK_SIZE_OFFSET));
+      notification.get(notificationID).setProgress(100, initial, false);
+      updateDownloadFragmentProgress(initial, notificationID);
+      notificationManager.notify(notificationID, notification.get(notificationID).build());
+    }
     kiwixService.getMetaLinks(url).retryWhen(errors -> errors.flatMap(error -> Observable.timer(5, TimeUnit.SECONDS)))
         .subscribeOn(AndroidSchedulers.mainThread())
         .flatMap(metaLink -> getMetaLinkContentLength(metaLink.getRelevantUrl().getValue()))
@@ -230,6 +243,7 @@ public class DownloadService extends Service {
             bookDao.deleteBook(book.id);
             notification.get(notificationID).setContentIntent(pendingIntent);
             notification.get(notificationID).mActions.clear();
+            TestingUtils.unbindResource(DownloadService.class);
           }
           notification.get(notificationID).setProgress(100, progress, false);
           notificationManager.notify(notificationID, notification.get(notificationID).build());
@@ -237,17 +251,21 @@ public class DownloadService extends Service {
             // Tells android to not kill the service
           updateForeground();
           }
-          if (DownloadFragment.mDownloads != null && DownloadFragment.mDownloads.get(notificationID) != null) {
-            handler.post(new Runnable() {
-              @Override
-              public void run() {
-                if (DownloadFragment.mDownloads.get(notificationID) != null) {
-                  DownloadFragment.downloadAdapter.updateProgress(progress, notificationID);
-                }
-              }
-            });
-          }
+          updateDownloadFragmentProgress(progress, notificationID);
         }, Throwable::printStackTrace);
+  }
+
+  private void updateDownloadFragmentProgress(int progress, int notificationID) {
+    if (DownloadFragment.mDownloads != null && DownloadFragment.mDownloads.get(notificationID) != null) {
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          if (DownloadFragment.mDownloads.get(notificationID) != null) {
+            DownloadFragment.downloadAdapter.updateProgress(progress, notificationID);
+          }
+        }
+      });
+    }
   }
 
   private void updateForeground() {

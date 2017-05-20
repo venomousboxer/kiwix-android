@@ -2,23 +2,11 @@ language: android
 
 jdk: oraclejdk8
 
-android:
-  components:
-    # Uncomment the lines below if you want to
-    # use the latest revision of Android SDK Tools
-    # - platform-tools
-    - tools
-    - tools
+sudo: required
 
-    - platform-tools
-    # The BuildTools version used by your project
-    - build-tools-25.0.0
-    
-    # The SDK version used to compile your project
-    - android-24
-    # The support library
-    - extra-android-m2repository
-
+install:
+  - pip install --user 'requests[security]'
+  - wget -r -nH -nd -np -R index.html* robots.txt* http://download.kiwix.org/dev/android/api/licenses/ -e robots=off -P $ANDROID_HOME/licenses || true
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -33,5 +21,4 @@ cache:
 licenses:
   - '.+'
 
-script:
-  - ./gradlew build  
+script: ./gradlew testdroidUploadKiwix && ./testdroid.py

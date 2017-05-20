@@ -4,25 +4,25 @@ import dagger.Module;
 import dagger.Provides;
 import javax.inject.Singleton;
 import okhttp3.OkHttpClient;
+import org.kiwix.kiwixmobile.BuildConfig;
 import org.kiwix.kiwixmobile.network.KiwixService;
+import org.kiwix.kiwixmobile.network.UserAgentInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.simplexml.SimpleXmlConverterFactory;
 import rx.schedulers.Schedulers;
 
 @Module public class NetworkModule {
+
+  public static String KIWIX_DOWNLOAD_URL = "http://download.kiwix.org/";
+  private final static String useragent = "kiwix-android-version:" + BuildConfig.VERSION_CODE;
+
   @Provides @Singleton OkHttpClient provideOkHttpClient() {
-    return new OkHttpClient().newBuilder().followRedirects(true).followSslRedirects(true).build();
+    return new OkHttpClient().newBuilder().followRedirects(true).followSslRedirects(true)
+        .addNetworkInterceptor(new UserAgentInterceptor(useragent)).build();
   }
 
   @Provides @Singleton KiwixService provideKiwixService(OkHttpClient okHttpClient) {
-    Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl("http://download.kiwix.org/")
-        .client(okHttpClient)
-        .addConverterFactory(SimpleXmlConverterFactory.create())
-        .addCallAdapterFactory(RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io()))
-        .build();
-
-    return retrofit.create(KiwixService.class);
+    return KiwixService.ServiceCreator.newHacklistService(okHttpClient, KIWIX_DOWNLOAD_URL);
   }
 }

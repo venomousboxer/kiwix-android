@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.text.Html;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -13,12 +11,11 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
+import javax.inject.Inject;
 import org.kiwix.kiwixlib.JNIKiwix;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.io.File;
 
 import org.kiwix.kiwixmobile.KiwixMobileActivity;
 import org.kiwix.kiwixmobile.ZimContentProvider;
@@ -30,6 +27,8 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
   private KiwixFilter mFilter;
 
   private Context context;
+
+  @Inject JNIKiwix jniKiwix;
 
   public AutoCompleteAdapter(Context context) {
     super(context, android.R.layout.simple_list_item_1);
@@ -88,7 +87,7 @@ public class AutoCompleteAdapter extends ArrayAdapter<String> implements Filtera
 	  /* Fulltex search */
           SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
           if (sharedPreferences.getBoolean(KiwixMobileActivity.PREF_FULL_TEXT_SEARCH, false)) {
-            String[] results = JNIKiwix.indexedQuery(query, 200).split("\n");
+            String[] results = jniKiwix.indexedQuery(query, 200).split("\n");
             for (String result : results) {
 		if (!result.trim().isEmpty())
 		    data.add(result);

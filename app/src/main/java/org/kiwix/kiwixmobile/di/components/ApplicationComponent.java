@@ -5,8 +5,11 @@ import dagger.Component;
 import javax.inject.Singleton;
 
 import org.kiwix.kiwixmobile.KiwixMobileActivity;
+import org.kiwix.kiwixmobile.ZimContentProvider;
+import org.kiwix.kiwixmobile.di.modules.JNIModule;
+import org.kiwix.kiwixmobile.library.LibraryAdapter;
 import org.kiwix.kiwixmobile.zim_manager.fileselect_view.ZimFileSelectFragment;
-import org.kiwix.kiwixmobile.bookmarksView.BookmarksActivity;
+import org.kiwix.kiwixmobile.bookmarks_view.BookmarksActivity;
 import org.kiwix.kiwixmobile.di.modules.ApplicationModule;
 import org.kiwix.kiwixmobile.di.modules.NetworkModule;
 import org.kiwix.kiwixmobile.downloader.DownloadService;
@@ -16,6 +19,7 @@ import org.kiwix.kiwixmobile.zim_manager.library_view.LibraryFragment;
 @Component(modules = {
     ApplicationModule.class,
     NetworkModule.class,
+    JNIModule.class,
 })
 public interface ApplicationComponent {
   void inject(KiwixMobileActivity activity);
@@ -27,4 +31,8 @@ public interface ApplicationComponent {
   void inject(BookmarksActivity bookmarksActivity);
 
   void inject(ZimFileSelectFragment zimFileSelectFragment);
+
+  void inject(ZimContentProvider zimContentProvider);
+
+  void inject(LibraryAdapter libraryAdapter);
 }
