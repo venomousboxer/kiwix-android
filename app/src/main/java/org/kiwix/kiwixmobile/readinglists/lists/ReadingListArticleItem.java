@@ -18,8 +18,9 @@ public class ReadingListArticleItem extends AbstractItem<ReadingListArticleItem,
     public String title;
     public String article_url;
 
-    public ReadingListArticleItem(String title) {
+    public ReadingListArticleItem(String title, String article_url) {
         this.title = title;
+        this.article_url = article_url;
     }
 
     public String getTitle() {

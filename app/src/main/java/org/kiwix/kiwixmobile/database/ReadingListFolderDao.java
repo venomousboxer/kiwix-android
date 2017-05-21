@@ -78,8 +78,8 @@ public class ReadingListFolderDao {
 
     public void saveBookmark(BookmarkArticle article) {
         if (article != null) {
-            mDb.persist(new Bookmarks().setBookmarkTitle(article.getBookmarkTitle())
-                    .setBookmarkUrl(article.getBookmarkUrl())
+            mDb.persist(new Bookmarks().setBookmarkTitle(article.getArticleTitle())
+                    .setBookmarkUrl(article.getArticleUrl())
                     .setParentReadinglist(article.getParentReadinglist())
                     .setZimId(article.getZimId())
                     .setZimName(article.getZimName()));

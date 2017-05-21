@@ -26,6 +26,7 @@ import org.kiwix.kiwixmobile.database.ReadingListFolderDao;
 import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
 import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 import org.kiwix.kiwixmobile.readinglists.lists.ReadingListItem;
+import org.kiwix.kiwixmobile.readinglists.lists.ReadingListItemPopup;
 
 import java.util.ArrayList;
 
@@ -33,11 +34,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 
-public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment implements FastAdapter.OnClickListener<ReadingListItem> {
+public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment implements FastAdapter.OnClickListener<ReadingListItemPopup> {
 
 
-  private FastAdapter<ReadingListItem> fastAdapter;
-  private ItemAdapter<ReadingListItem> itemAdapter;
+  private FastAdapter<ReadingListItemPopup> fastAdapter;
+  private ItemAdapter<ReadingListItemPopup> itemAdapter;
   private View mainContainer;
   private CreateButtonClickListener createClickListener = new CreateButtonClickListener();
   @Nullable
@@ -142,12 +143,12 @@ public class AddToReadingListDialog extends ExtendedBottomSheetDialogFragment im
 
   private void updateLists() {
     for (ReadinglistFolder folder : folders) {
-      itemAdapter.add(new ReadingListItem(folder.getFolderTitle()));
+      itemAdapter.add(new ReadingListItemPopup(folder.getFolderTitle()));
     }
   }
 
   @Override
-  public boolean onClick(View v, IAdapter<ReadingListItem> adapter, ReadingListItem item, int position) {
+  public boolean onClick(View v, IAdapter<ReadingListItemPopup> adapter, ReadingListItemPopup item, int position) {
     dismiss();
     currentArticle.setParentReadinglist(item.getTitle());
     readinglistDao.saveBookmark(currentArticle);

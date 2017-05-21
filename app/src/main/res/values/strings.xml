@@ -176,4 +176,8 @@
   <string name="delete_tab">Delete Tab</string>
   <string name="next">Next</string>
   <string name="previous">Previous</string>
+  <string name="menu_filter">Sort</string>
+  <string name="menu_rename_readinglist">Rename</string>
+  <string name="menu_edit_description">Edit description</string>
+  <string name="menu_delete_readinglist">Delete list</string>
 </resources>

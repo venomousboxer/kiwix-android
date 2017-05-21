@@ -32,14 +32,14 @@ import java.util.ArrayList;
 import java.util.Set;
 
 
-public class ReadingFoldersFragment extends Fragment implements FastAdapter.OnClickListener<ReadingListItem> {
+public class ReadingFoldersFragment extends Fragment implements FastAdapter.OnClickListener<ReadingListItem>, FastAdapter.OnLongClickListener<ReadingListItem> {
 
     private FastAdapter<ReadingListItem> fastAdapter;
     private ItemAdapter<ReadingListItem> itemAdapter;
     private ReadingListFolderDao readinglistFoldersDao;
     private ArrayList<ReadinglistFolder> folders;
     private final String FRAGMENT_ARGS_FOLDER_TITLE = "requested_folder_title";
-    private ActionModeHelper mActionModeHelper;
+    private ActionMode actionMode;
     private RecyclerView foldersRecyclerview;
 
     public ReadingFoldersFragment() {
@@ -64,10 +64,6 @@ public class ReadingFoldersFragment extends Fragment implements FastAdapter.OnCl
         fastAdapter = new FastAdapter<>();
         itemAdapter = new ItemAdapter<>();
 
-        mActionModeHelper = new ActionModeHelper(fastAdapter, R.menu.actionmenu_readinglist, new ReadingFoldersFragment.ActionBarCallBack());
-
-
-
         setupFastAdapter();
 
         readinglistFoldersDao = new ReadingListFolderDao(KiwixDatabase.getInstance(getActivity()));
@@ -78,32 +74,14 @@ public class ReadingFoldersFragment extends Fragment implements FastAdapter.OnCl
     private void setupFastAdapter() {
 
 
-
         fastAdapter.withOnClickListener(this);
+        fastAdapter.withOnLongClickListener(this);
         fastAdapter.withSelectOnLongClick(false);
         fastAdapter.withSelectable(false);
         fastAdapter.withMultiSelect(true);
         foldersRecyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         foldersRecyclerview.setAdapter(itemAdapter.wrap(fastAdapter));
-
-
-        fastAdapter.withOnPreClickListener((v, adapter, item, position) -> {
-            //we handle the default onClick behavior for the actionMode. This will return null if it didn't do anything and you can handle a normal onClick
-            Boolean res = mActionModeHelper.onClick(item);
-            return mActionModeHelper.getActionMode() != null;
-        });
-
-        fastAdapter.withOnPreLongClickListener((v, adapter, item, position) -> {
-            ActionMode actionMode = mActionModeHelper.onLongClick((AppCompatActivity)getActivity(),position);
-
-            if (actionMode != null) {
-
-            }
-
-            //if we have no actionMode we do not consume the event
-            return actionMode != null;
-        });
     }
 
 
@@ -127,6 +105,10 @@ public class ReadingFoldersFragment extends Fragment implements FastAdapter.OnCl
 
     @Override
     public boolean onClick(View v, IAdapter<ReadingListItem> adapter, ReadingListItem item, int position) {
+        if (actionMode != null) {
+            toggleSelection(position);
+            return true;
+        }
         ReadingListFragment readingListFragment = new ReadingListFragment();
         Bundle args = new Bundle();
         args.putString(FRAGMENT_ARGS_FOLDER_TITLE,item.getTitle());
@@ -136,6 +118,18 @@ public class ReadingFoldersFragment extends Fragment implements FastAdapter.OnCl
         transaction.addToBackStack(null);
 
         transaction.commit();
+        return true;
+    }
+
+
+    @Override
+    public boolean onLongClick(View v, IAdapter<ReadingListItem> adapter, ReadingListItem item, int position) {
+        if (actionMode == null) {
+            actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(new ActionModeCallback());
+        }
+
+        toggleSelection(position);
+
         return true;
     }
 
@@ -152,36 +146,56 @@ public class ReadingFoldersFragment extends Fragment implements FastAdapter.OnCl
         }
     }
 
+    private void toggleSelection(int position) {
+        fastAdapter.toggleSelection(position);
+        int count = fastAdapter.getSelectedItems().size();
+
+        if (count == 0) {
+            actionMode.finish();
+        } else {
+            actionMode.setTitle(String.valueOf(count));
+            actionMode.invalidate();
+        }
+    }
+
     /**
      * Our ActionBarCallBack to showcase the CAB
      */
-    class ActionBarCallBack implements ActionMode.Callback {
+
+    private class ActionModeCallback implements ActionMode.Callback {
+        @SuppressWarnings("unused")
+        private final String TAG = ActionModeCallback.class.getSimpleName();
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mode.getMenuInflater().inflate (R.menu.actionmenu_readinglist_folders, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-
             switch (item.getItemId()) {
                 case R.id.actionmenu_readinglist_delete:
                     deleteSelectedItems();
                     mode.finish();
                     return true;
+
                 default:
                     return false;
             }
         }
 
         @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            return true;
-        }
-
-        @Override
         public void onDestroyActionMode(ActionMode mode) {
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false;
+            for (ReadingListItem item:fastAdapter.getSelectedItems()) {
+                fastAdapter.toggleSelection(fastAdapter.getPosition(item));
+            }
+            actionMode = null;
         }
     }
 
