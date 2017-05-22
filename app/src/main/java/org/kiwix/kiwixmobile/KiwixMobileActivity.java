@@ -234,6 +234,9 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   private BookmarksDao bookmarksDao;
 
+  private ReadingListFolderDao readinglistFoldersDao;
+
+
   @BindView(R.id.toolbar)
   Toolbar toolbar;
 
@@ -368,6 +371,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
       }
     });
 
+    readinglistFoldersDao = new ReadingListFolderDao(KiwixDatabase.getInstance(this));
     documentSections = new ArrayList<>();
     tabDrawerAdapter = new TabDrawerAdapter(mWebViews);
     tabDrawerLeft.setLayoutManager(new LinearLayoutManager(this));
@@ -839,7 +843,6 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   private void goToBookmarks() {
     saveTabStates();
     Intent intentBookmarks = new Intent(getBaseContext(), ReadingListManagerActivity.class);
-    intentBookmarks.putExtra("bookmark_contents", bookmarks);
     startActivityForResult(intentBookmarks, BOOKMARK_CHOSEN_REQUEST);
   }
 
@@ -1489,17 +1492,18 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   public void refreshBookmarkSymbol(Menu menu) { // Checks if current webview is in bookmarks array
-    if (bookmarks == null || bookmarks.size() == 0) {
-      bookmarksDao = new BookmarksDao(KiwixDatabase.getInstance(this));
-      bookmarks = bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
-    }
+//    if (bookmarks == null || bookmarks.size() == 0) {
+//      bookmarksDao = new BookmarksDao(KiwixDatabase.getInstance(this));
+//      bookmarks = bookmarksDao.getBookmarks(ZimContentProvider.getId(), ZimContentProvider.getName());
+//    }
+    boolean isSaved = readinglistFoldersDao.isBookmarkSaved(new BookmarkArticle(getCurrentWebView().getUrl(),getCurrentWebView().getTitle()));
     if (menu.findItem(R.id.menu_bookmarks) != null &&
         getCurrentWebView().getUrl() != null &&
         ZimContentProvider.getId() != null &&
         !getCurrentWebView().getUrl().equals("file:///android_res/raw/help.html")) {
       menu.findItem(R.id.menu_bookmarks)
           .setEnabled(true)
-          .setIcon(bookmarks.contains(getCurrentWebView().getUrl()) ? R.drawable.action_bookmark_active : R.drawable.action_bookmark)
+          .setIcon(isSaved ? R.drawable.action_bookmark_active : R.drawable.action_bookmark)
           .getIcon().setAlpha(255);
     } else {
       menu.findItem(R.id.menu_bookmarks)

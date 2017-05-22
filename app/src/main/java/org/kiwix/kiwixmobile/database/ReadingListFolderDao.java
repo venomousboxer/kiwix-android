@@ -75,6 +75,17 @@ public class ReadingListFolderDao {
 
     }
 
+    public boolean isBookmarkSaved(BookmarkArticle article) {
+        for(ReadinglistFolder folder : getFolders()) {
+            for (BookmarkArticle bookmarkArticle : getArticlesOfFolder(folder)) {
+                if (bookmarkArticle.getArticleUrl().equals(article.getArticleUrl())){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     public void saveBookmark(BookmarkArticle article) {
         if (article != null) {
@@ -111,6 +122,8 @@ public class ReadingListFolderDao {
             .and(Bookmarks.BOOKMARK_TITLE.eq(item.getTitle())));
         }
     }
+
+
 
 
 }
