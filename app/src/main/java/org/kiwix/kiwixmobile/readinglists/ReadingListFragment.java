@@ -8,12 +8,14 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -29,6 +31,7 @@ import org.kiwix.kiwixmobile.database.ReadingListFolderDao;
 import org.kiwix.kiwixmobile.readinglists.entities.BookmarkArticle;
 import org.kiwix.kiwixmobile.readinglists.entities.ReadinglistFolder;
 import org.kiwix.kiwixmobile.readinglists.lists.ReadingListArticleItem;
+import org.kiwix.kiwixmobile.readinglists.lists.ReadingListItem;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -38,7 +41,7 @@ import static org.kiwix.kiwixmobile.R.id.toolbar;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ReadingListFragment extends Fragment implements FastAdapter.OnClickListener<ReadingListArticleItem> {
+public class ReadingListFragment extends Fragment implements FastAdapter.OnClickListener<ReadingListArticleItem>, FastAdapter.OnLongClickListener<ReadingListArticleItem> {
 
     private FastAdapter<ReadingListArticleItem> fastAdapter;
     private ItemAdapter<ReadingListArticleItem> itemAdapter;
@@ -47,6 +50,7 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
     private ArrayList<BookmarkArticle> articles;
     private RecyclerView readinglistRecyclerview;
     private String folderTitle = null;
+    private ActionMode actionMode;
 
 
     public ReadingListFragment() {
@@ -106,6 +110,7 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
         itemAdapter = new ItemAdapter<>();
 
         fastAdapter.withOnClickListener(this);
+        fastAdapter.withOnLongClickListener(this);
         fastAdapter.withSelectOnLongClick(false);
         fastAdapter.withSelectable(false);
         fastAdapter.withMultiSelect(true);
@@ -127,11 +132,17 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
     private void deleteSelectedItems() {
         Set<ReadingListArticleItem> selectedItems = fastAdapter.getSelectedItems();
         readinglistFoldersDao.deleteArticles(selectedItems);
-        loadArticlesOfFolder();
+        for (ReadingListArticleItem item : selectedItems) {
+            itemAdapter.remove(itemAdapter.getAdapterPosition(item));
+        }
     }
 
     @Override
     public boolean onClick(View v, IAdapter<ReadingListArticleItem> adapter, ReadingListArticleItem item, int position) {
+        if (actionMode != null) {
+            toggleSelection(position);
+            return true;
+        }
         Intent intent = new Intent(getActivity(), KiwixMobileActivity.class);
         if (!item.getArticle_url().equals("null")) {
             intent.putExtra("choseXURL", item.getArticle_url());
@@ -142,6 +153,69 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
         startActivity(intent);
         getActivity().finish();
         return true;
+    }
+
+
+    @Override
+    public boolean onLongClick(View v, IAdapter<ReadingListArticleItem> adapter, ReadingListArticleItem item, int position) {
+        if (actionMode == null) {
+            actionMode = ((AppCompatActivity) getActivity()).startSupportActionMode(new ReadingListFragment.ActionModeCallback());
+        }
+
+        toggleSelection(position);
+
+        return true;
+    }
+
+    private void toggleSelection(int position) {
+        fastAdapter.toggleSelection(position);
+        int count = fastAdapter.getSelectedItems().size();
+
+        if (count == 0) {
+            actionMode.finish();
+        } else {
+            actionMode.setTitle(String.valueOf(count));
+            actionMode.invalidate();
+        }
+    }
+
+    /**
+     * Our ActionBarCallBack to showcase the CAB
+     */
+
+    private class ActionModeCallback implements ActionMode.Callback {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mode.getMenuInflater().inflate (R.menu.actionmenu_readinglist_folders, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.actionmenu_readinglist_delete:
+                    deleteSelectedItems();
+                    mode.finish();
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            for (ReadingListArticleItem item:fastAdapter.getSelectedItems()) {
+                fastAdapter.toggleSelection(fastAdapter.getPosition(item));
+            }
+            actionMode = null;
+        }
     }
 
 

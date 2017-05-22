@@ -9,60 +9,70 @@
     android:clickable="true"
     android:foreground="?android:attr/selectableItemBackground">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp">
-
-        <LinearLayout
-            android:id="@+id/item_image_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="16dp"
-            android:layout_marginEnd="16dp"
-            android:orientation="vertical"
-            android:layout_gravity="top">
-
-            <ImageView
-                android:padding="8dp"
-                android:src="@drawable/ic_default_pic"
-                android:layout_height="46dp"
-                android:layout_width="60dp"/>
-
-
-        </LinearLayout>
+        android:layout_height="match_parent"
+        android:background="@drawable/list_item_selector">
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:layout_marginRight="16dp"
-            android:layout_marginEnd="16dp"
-            android:orientation="vertical">
+            android:layout_margin="16dp">
 
-            <TextView
-                android:id="@+id/readinglist_article_item_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:ellipsize="end"
-                android:maxLines="2"
-                />
-
-            <TextView
-                android:id="@+id/readinglist_article_item_description"
+            <LinearLayout
+                android:id="@+id/item_image_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:ellipsize="end"
-                android:maxLines="1"
+                android:layout_marginRight="16dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="vertical"
+                android:layout_gravity="top">
 
-                />
+                <ImageView
+                    android:padding="8dp"
+                    android:src="@drawable/ic_default_pic"
+                    android:layout_height="46dp"
+                    android:layout_width="60dp"/>
 
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_marginRight="16dp"
+                android:layout_marginEnd="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/readinglist_article_item_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    />
+
+                <TextView
+                    android:id="@+id/readinglist_article_item_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+
+                    />
+
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
+
+
+    </FrameLayout>
+
 
 
 </android.support.v7.widget.CardView>
