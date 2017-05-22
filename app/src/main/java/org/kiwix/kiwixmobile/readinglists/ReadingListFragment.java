@@ -64,8 +64,8 @@ public class ReadingListFragment extends Fragment implements FastAdapter.OnClick
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        setUpToolbar();
         folderTitle = this.getArguments().getString(FRAGMENT_ARGS_FOLDER_TITLE);
+        setUpToolbar();
     }
 
     private void setUpToolbar() {
