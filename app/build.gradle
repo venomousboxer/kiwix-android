@@ -170,7 +170,9 @@ android {
 
     // Release Type
     release {
-
+      minifyEnabled true
+      shrinkResources true
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
   }
 
@@ -279,16 +281,6 @@ android {
   dexOptions {
     javaMaxHeapSize "4g"
   }
-
-  /*
-  Add back once proguard is configured
-  buildTypes {
-    release {
-      minifyEnabled true
-      proguardFiles getDefaultProguardFile('proguard-android.txt')
-    }
-  }
-  */
 }
 
 task wrapper(type: Wrapper) {

@@ -1,0 +1,98 @@
+# Logging
+
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
+    public static int e(...);
+}
+
+# Java
+
+-dontwarn sun.reflect.**
+-dontwarn java.lang.management.**
+-dontwarn java.lang.invoke.**
+
+# JUnit, Mockito
+
+-dontwarn org.mockito.**
+-dontwarn android.test.**
+
+# WebView
+
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# Guava
+
+-keep class com.google.common.io.Resources {
+    public static <methods>;
+}
+-keep class com.google.common.collect.Lists {
+    public static ** reverse(**);
+}
+-keep class com.google.common.base.Charsets {
+    public static <fields>;
+}
+-keep class com.google.common.base.Joiner {
+    public static com.google.common.base.Joiner on(java.lang.String);
+    public ** join(...);
+}
+-keep class com.google.common.cache.LocalCache$ReferenceEntry
+
+-dontwarn javax.annotation.**
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.inject.**
+-dontwarn sun.misc.Unsafe
+-dontwarn java.lang.ClassValue
+-dontwarn com.google.j2objc.annotations.**
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
+
+# Dagger
+
+-keepclassmembers,allowobfuscation class * {
+    @dagger.** *;
+}
+
+-keep class **$$ModuleAdapter
+-keep class **$$InjectAdapter
+-keep class **$$StaticInjection
+
+-keepnames class dagger.Lazy
+
+# Butterknive
+
+-keep @interface butterknife.*
+
+-keepclasseswithmembers class * {
+    @butterknife.* <fields>;
+}
+
+-keepclasseswithmembers class * {
+    @butterknife.* <methods>;
+}
+
+-keepclasseswithmembers class * {
+    @butterknife.On* <methods>;
+}
+
+-keep class **$$ViewInjector {
+    public static void inject(...);
+    public static void reset(...);
+}
+
+-keep class **$$ViewBinder {
+    public static void bind(...);
+    public static void unbind(...);
+}
+
+# OkHttp
+
+-dontwarn java.nio.**
+
+# SimpleXML
+
+-dontwarn org.simpleframework.xml.stream.**
