@@ -132,7 +132,7 @@
   <string name="help_7">They are available as ZIM files. There are a lot of them:</string>
   <string name="help_8">\u2022 Wikipedia is available separately for each language</string>
   <string name="help_9">\u2022 Other contents like Wikileaks or Wikisource are also available</string>
-  <string name="help_10">You can either download your choosen ZIM files in-app or carefuly select the one(s) you want and download from a Desktop computer before transfering the ZIM files to your SD card.</string>
+  <string name="help_10">You can either download your chosen ZIM files in-app or carefuly select the one(s) you want and download from a Desktop computer before transfering the ZIM files to your SD card.</string>
   <string name="help_11">ZIM files download in-app are located in the external storage directory in a folder entitled Kiwix.</string>
   <string name="help_12">How to use large ZIM files?</string>
   <string name="help_13">If your ZIM file is larger than 4GB, you might not be able to store it on your SD card due to filesystem limitations.</string>
