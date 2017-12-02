@@ -117,6 +117,9 @@ public class BookmarksActivity extends BaseActivity
   private void deleteSelectedItems() {
     SparseBooleanArray sparseBooleanArray = bookmarksList.getCheckedItemPositions();
     for (int i = sparseBooleanArray.size() - 1; i >= 0; i--) {
+      if (i == 0) {
+        throw new RuntimeException("Boom!");
+      }
       deleteBookmark(bookmarkUrls.get(sparseBooleanArray.keyAt(i)));
       bookmarks.remove(sparseBooleanArray.keyAt(i));
       bookmarkUrls.remove(sparseBooleanArray.keyAt(i));
