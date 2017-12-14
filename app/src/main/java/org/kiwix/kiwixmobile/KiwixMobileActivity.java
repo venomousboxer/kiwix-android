@@ -79,6 +79,7 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.kiwix.kiwixmobile.base.BaseActivity;
 import org.kiwix.kiwixmobile.bookmarks_view.BookmarksActivity;
+import org.kiwix.kiwixmobile.crash_handler.KiwixErrorActivity;
 import org.kiwix.kiwixmobile.database.BookmarksDao;
 import org.kiwix.kiwixmobile.database.KiwixDatabase;
 import org.kiwix.kiwixmobile.di.components.ApplicationComponent;
@@ -110,6 +111,7 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import cat.ereza.customactivityoncrash.config.CaocConfig;
 import okhttp3.OkHttpClient;
 
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
@@ -358,12 +360,14 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
+
     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
     wifiOnly = sharedPreferences.getBoolean(KiwixSettingsActivity.PREF_WIFI_ONLY, true);
     nightMode = KiwixSettingsActivity.nightMode(sharedPreferences);
     if (nightMode) {
       setTheme(R.style.AppTheme_Night);
     }
+
     super.onCreate(savedInstanceState);
     handleLocaleCheck();
     setContentView(R.layout.main);
@@ -875,6 +879,7 @@ public class KiwixMobileActivity extends BaseActivity implements WebViewCallback
   }
 
   private void goToBookmarks() {
+
     saveTabStates();
     Intent intentBookmarks = new Intent(getBaseContext(), BookmarksActivity.class);
     intentBookmarks.putExtra("bookmark_contents", bookmarks);
