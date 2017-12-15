@@ -129,10 +129,6 @@ public class BookmarksActivity extends BaseActivity
 
             @Override
             protected String doInBackground(Void... voids) {
-                Process logcat;
-                final StringBuilder log = new StringBuilder();
-                String path = Environment.getExternalStorageDirectory() + "/" + "MyApp/";
-                String fullName = path + "crash-log.txt";
 
                 // Extract to file.
                 File appDirectory = new File( Environment.getExternalStorageDirectory() + "/KiwixApp" );
