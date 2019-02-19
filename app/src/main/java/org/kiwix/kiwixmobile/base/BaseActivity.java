@@ -18,51 +18,45 @@
 package org.kiwix.kiwixmobile.base;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-
-import org.kiwix.kiwixmobile.KiwixApplication;
-import org.kiwix.kiwixmobile.di.components.ApplicationComponent;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+import dagger.android.AndroidInjection;
+import javax.inject.Inject;
+import org.kiwix.kiwixmobile.R;
+import org.kiwix.kiwixmobile.utils.LanguageUtils;
+import org.kiwix.kiwixmobile.utils.SharedPreferenceUtil;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
+  @Inject
+  protected SharedPreferenceUtil sharedPreferenceUtil;
 
-  @Override protected void onCreate(@Nullable Bundle savedInstanceState) {
+  private Unbinder unbinder;
+
+  @Override
+  protected void onCreate(@Nullable Bundle savedInstanceState) {
+    AndroidInjection.inject(this);
     super.onCreate(savedInstanceState);
-    setupDagger(KiwixApplication.getInstance().getApplicationComponent());
-    //attachPresenter();
+    LanguageUtils.handleLocaleChange(this, sharedPreferenceUtil);
   }
 
-  @Override protected void onStart() {
-    super.onStart();
-    //presenter.onStart();
+  @Override
+  public void setContentView(@LayoutRes int layoutResID) {
+    if (sharedPreferenceUtil.nightMode()) {
+      setTheme(R.style.AppTheme_Night);
+    }
+    super.setContentView(layoutResID);
+    unbinder = ButterKnife.bind(this);
   }
 
-  @Override protected void onResume() {
-    super.onResume();
-    //presenter.onResume();
-  }
-
-  @Override protected void onPause() {
-    super.onPause();
-    //presenter.onPause();
-  }
-
-  @Override protected void onStop() {
-    super.onStop();
-    //presenter.onStop();
-  }
-
-  @Override protected void onDestroy() {
+  @Override
+  protected void onDestroy() {
     super.onDestroy();
-    //presenter.onDestroy();
+    if (unbinder != null) {
+      unbinder.unbind();
+    }
   }
-
-  //protected void attachPresenter(Presenter presenter) {
-  //  this.presenter = presenter;
-  //}
-
-  protected abstract void setupDagger(ApplicationComponent appComponent);
-
-  //public abstract void attachPresenter();
 }

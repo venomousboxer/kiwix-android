@@ -23,6 +23,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,19 +31,8 @@ import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.google.common.collect.ImmutableList;
-
-import org.kiwix.kiwixmobile.KiwixApplication;
-import org.kiwix.kiwixmobile.R;
-import org.kiwix.kiwixmobile.database.BookDao;
-import org.kiwix.kiwixmobile.database.KiwixDatabase;
-import org.kiwix.kiwixmobile.database.NetworkLanguageDao;
-import org.kiwix.kiwixmobile.downloader.DownloadFragment;
-import org.kiwix.kiwixmobile.library.entity.LibraryNetworkEntity.Book;
-import org.kiwix.kiwixmobile.utils.BookUtils;
-import org.kiwix.kiwixmobile.zim_manager.library_view.LibraryFragment;
-
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,51 +41,84 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-
 import javax.inject.Inject;
-
-import io.reactivex.Completable;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import org.kiwix.kiwixmobile.KiwixApplication;
+import org.kiwix.kiwixmobile.R;
+import org.kiwix.kiwixmobile.data.DataSource;
+import org.kiwix.kiwixmobile.data.local.dao.BookDao;
+import org.kiwix.kiwixmobile.data.local.dao.NetworkLanguageDao;
+import org.kiwix.kiwixmobile.downloader.DownloadFragment;
+import org.kiwix.kiwixmobile.library.entity.LibraryNetworkEntity.Book;
+import org.kiwix.kiwixmobile.models.Language;
+import org.kiwix.kiwixmobile.utils.BookUtils;
+import org.kiwix.kiwixmobile.zim_manager.library_view.LibraryFragment;
 
 import static org.kiwix.kiwixmobile.utils.NetworkUtils.parseURL;
 
 public class LibraryAdapter extends BaseAdapter {
   private static final int LIST_ITEM_TYPE_BOOK = 0;
   private static final int LIST_ITEM_TYPE_DIVIDER = 1;
-
-  private ImmutableList<Book> allBooks;
-  private List<ListItem> listItems = new ArrayList<>();
+  public final HashMap<String, Integer> languageCounts = new HashMap<>();
   private final Context context;
-  public Map<String, Integer> languageCounts = new HashMap<>();
-  public List<Language> languages = new ArrayList<>();
-  private final NetworkLanguageDao networkLanguageDao;
-  private final BookDao bookDao;
   private final LayoutInflater layoutInflater;
   private final BookFilter bookFilter = new BookFilter();
-  private Disposable saveNetworkLanguageDisposable;
+  private final List<ListItem> listItems = new ArrayList<>();
+  public ArrayList<Language> languages = new ArrayList<>();
   @Inject BookUtils bookUtils;
-
-  private void setupDagger() {
-    KiwixApplication.getInstance().getApplicationComponent().inject(this);
-  }
-
+  @Inject
+  NetworkLanguageDao networkLanguageDao;
+  @Inject
+  BookDao bookDao;
+  @Inject
+  DataSource dataSource;
+  private List<Book> allBooks;
+  private Disposable saveNetworkLanguageDisposable;
 
   public LibraryAdapter(Context context) {
     super();
-    setupDagger();
+    KiwixApplication.getApplicationComponent().inject(this);
     this.context = context;
     layoutInflater = LayoutInflater.from(context);
-    networkLanguageDao = new NetworkLanguageDao(KiwixDatabase.getInstance(context));
-    bookDao = new BookDao(KiwixDatabase.getInstance(context));
+  }
+
+  // Create a string that represents the size of the zim file in a human readable way
+  public static String createGbString(String megaByte) {
+
+    int size = 0;
+    try {
+      size = Integer.parseInt(megaByte);
+    } catch (NumberFormatException e) {
+      e.printStackTrace();
+    }
+
+    if (size <= 0) {
+      return "";
+    }
+
+    final String[] units = new String[] { "KB", "MB", "GB", "TB" };
+    int conversion = (int) (Math.log10(size) / Math.log10(1024));
+    return new DecimalFormat("#,##0.#")
+        .format(size / Math.pow(1024, conversion))
+        + " "
+        + units[conversion];
+  }
+
+  // Decode and create a Bitmap from the 64-Bit encoded favicon string
+  public static Bitmap createBitmapFromEncodedString(String encodedString, Context context) {
+
+    try {
+      byte[] decodedString = Base64.decode(encodedString, Base64.DEFAULT);
+      return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return BitmapFactory.decodeResource(context.getResources(), R.mipmap.kiwix_icon);
   }
 
   public void setAllBooks(List<Book> books) {
-    allBooks = ImmutableList.copyOf(books);
+    allBooks = Collections.unmodifiableList(books);
     updateLanguageCounts();
     updateLanguages();
   }
@@ -241,85 +264,8 @@ public class LibraryAdapter extends BaseAdapter {
     }
   }
 
-  private class BookFilter extends Filter {
-    @Override
-    protected FilterResults performFiltering(CharSequence s) {
-      ArrayList<Book> books = bookDao.getBooks();
-      listItems.clear();
-      if (s.length() == 0) {
-        List<Book> selectedLanguages = Observable.fromIterable(allBooks)
-            .filter(LibraryAdapter.this::languageActive)
-            .filter(book -> !books.contains(book))
-            .filter(book -> !DownloadFragment.mDownloads.values().contains(book))
-            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
-            .toList()
-            .blockingGet();
-
-        List<Book> unselectedLanguages = Observable.fromIterable(allBooks)
-            .filter(book -> !languageActive(book))
-            .filter(book -> !books.contains(book))
-            .filter(book -> !DownloadFragment.mDownloads.values().contains(book))
-            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
-            .toList()
-            .blockingGet();
-
-        listItems.add(new ListItem(context.getResources().getString(R.string.your_languages), LIST_ITEM_TYPE_DIVIDER));
-        addBooks(selectedLanguages);
-        listItems.add(new ListItem(context.getResources().getString(R.string.other_languages), LIST_ITEM_TYPE_DIVIDER));
-        addBooks(unselectedLanguages);
-      } else {
-        List<Book> selectedLanguages = Observable.fromIterable(allBooks)
-            .filter(LibraryAdapter.this::languageActive)
-            .filter(book -> !books.contains(book))
-            .filter(book -> !DownloadFragment.mDownloads.values().contains(book))
-            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
-            .flatMap(book -> getMatches(book, s.toString()))
-            .toList()
-            .blockingGet();
-
-        Collections.sort(selectedLanguages, new BookMatchComparator());
-
-        List<Book> unselectedLanguages = Observable.fromIterable(allBooks)
-            .filter(book -> !languageActive(book))
-            .filter(book -> !books.contains(book))
-            .filter(book -> !DownloadFragment.mDownloads.values().contains(book))
-            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
-            .flatMap(book -> getMatches(book, s.toString()))
-            .toList()
-            .blockingGet();
-
-        Collections.sort(unselectedLanguages, new BookMatchComparator());
-
-        listItems.add(new ListItem("In your language:", LIST_ITEM_TYPE_DIVIDER));
-        addBooks(selectedLanguages);
-        listItems.add(new ListItem("In other languages:", LIST_ITEM_TYPE_DIVIDER));
-        addBooks(unselectedLanguages);
-      }
-
-      FilterResults results = new FilterResults();
-      results.values = listItems;
-      results.count = listItems.size();
-      return results;
-    }
-
-    @Override
-    protected void publishResults(CharSequence constraint, FilterResults results) {
-      List<ListItem> filtered = (List<ListItem>) results.values;
-      if (filtered != null) {
-        if (filtered.isEmpty()) {
-          addBooks(allBooks);
-        }
-      }
-      notifyDataSetChanged();
-    }
-  }
-
   public Filter getFilter() {
     return bookFilter;
-  }
-
-  public void updateNetworkLanguages() {
-    saveNetworkLanguages();
   }
 
   private void updateLanguageCounts() {
@@ -346,13 +292,14 @@ public class LibraryAdapter extends BaseAdapter {
     }
 
     // Populate languages with all available locales, which appear in the current list of all books.
-    this.languages = new ArrayList<>();
+    this.languages.clear();
     for (String iso_language : Locale.getISOLanguages()) {
       Locale locale = new Locale(iso_language);
       if (languageCounts.get(locale.getISO3Language()) != null) {
         // Enable this language either if it was enabled previously, or if it is the device language.
         if (enabled_languages.contains(locale.getISO3Language()) ||
-            context.getResources().getConfiguration().locale.getISO3Language().equals(locale.getISO3Language())) {
+            context.getResources().getConfiguration().locale.getISO3Language()
+                .equals(locale.getISO3Language())) {
           this.languages.add(new Language(locale, true));
         } else {
           this.languages.add(new Language(locale, false));
@@ -369,39 +316,13 @@ public class LibraryAdapter extends BaseAdapter {
     }
   }
 
-  // Create a string that represents the size of the zim file in a human readable way
-  public static String createGbString(String megaByte) {
-
-    int size = 0;
-    try {
-      size = Integer.parseInt(megaByte);
-    } catch (NumberFormatException e) {
-      e.printStackTrace();
+  private void saveNetworkLanguages() {
+    if (saveNetworkLanguageDisposable != null && !saveNetworkLanguageDisposable.isDisposed()) {
+      saveNetworkLanguageDisposable.dispose();
     }
-
-    if (size <= 0) {
-      return "";
-    }
-
-    final String[] units = new String[]{"KB", "MB", "GB", "TB"};
-    int conversion = (int) (Math.log10(size) / Math.log10(1024));
-    return new DecimalFormat("#,##0.#")
-        .format(size / Math.pow(1024, conversion))
-        + " "
-        + units[conversion];
-  }
-
-  // Decode and create a Bitmap from the 64-Bit encoded favicon string
-  public static Bitmap createBitmapFromEncodedString(String encodedString, Context context) {
-
-    try {
-      byte[] decodedString = Base64.decode(encodedString, Base64.DEFAULT);
-      return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    return BitmapFactory.decodeResource(context.getResources(), R.mipmap.kiwix_icon);
+    saveNetworkLanguageDisposable = dataSource.saveLanguages(languages)
+        .subscribe(() -> {
+        }, throwable -> Log.d("LibraryAdapter", throwable.toString()));
   }
 
   private static class ViewHolder {
@@ -425,11 +346,90 @@ public class LibraryAdapter extends BaseAdapter {
     ImageView favicon;
   }
 
-  private class ListItem {
-    public Object data;
-    public int type;
+  private class BookFilter extends Filter {
+    @Override
+    protected FilterResults performFiltering(CharSequence s) {
+      ArrayList<Book> books = bookDao.getBooks();
+      listItems.clear();
+      if (s.length() == 0) {
+        List<Book> selectedLanguages = Observable.fromIterable(allBooks)
+            .filter(LibraryAdapter.this::languageActive)
+            .filter(book -> !books.contains(book))
+            .filter(book -> !DownloadFragment.downloads.values().contains(book))
+            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
+            .filter(book -> !book.url.contains("/stack_exchange/")) // Temp filter see #694
+            .toList()
+            .blockingGet();
 
-    public ListItem(Object data, int type) {
+        List<Book> unselectedLanguages = Observable.fromIterable(allBooks)
+            .filter(book -> !languageActive(book))
+            .filter(book -> !books.contains(book))
+            .filter(book -> !DownloadFragment.downloads.values().contains(book))
+            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
+            .filter(book -> !book.url.contains("/stack_exchange/")) // Temp filter see #694
+            .toList()
+            .blockingGet();
+
+        listItems.add(new ListItem(context.getResources().getString(R.string.your_languages),
+            LIST_ITEM_TYPE_DIVIDER));
+        addBooks(selectedLanguages);
+        listItems.add(new ListItem(context.getResources().getString(R.string.other_languages),
+            LIST_ITEM_TYPE_DIVIDER));
+        addBooks(unselectedLanguages);
+      } else {
+        List<Book> selectedLanguages = Observable.fromIterable(allBooks)
+            .filter(LibraryAdapter.this::languageActive)
+            .filter(book -> !books.contains(book))
+            .filter(book -> !DownloadFragment.downloads.values().contains(book))
+            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
+            .filter(book -> !book.url.contains("/stack_exchange/")) // Temp filter see #694
+            .flatMap(book -> getMatches(book, s.toString()))
+            .toList()
+            .blockingGet();
+
+        Collections.sort(selectedLanguages, new BookMatchComparator());
+
+        List<Book> unselectedLanguages = Observable.fromIterable(allBooks)
+            .filter(book -> !languageActive(book))
+            .filter(book -> !books.contains(book))
+            .filter(book -> !DownloadFragment.downloads.values().contains(book))
+            .filter(book -> !LibraryFragment.downloadingBooks.contains(book))
+            .filter(book -> !book.url.contains("/stack_exchange/")) // Temp filter see #694
+            .flatMap(book -> getMatches(book, s.toString()))
+            .toList()
+            .blockingGet();
+
+        Collections.sort(unselectedLanguages, new BookMatchComparator());
+
+        listItems.add(new ListItem("In your language:", LIST_ITEM_TYPE_DIVIDER));
+        addBooks(selectedLanguages);
+        listItems.add(new ListItem("In other languages:", LIST_ITEM_TYPE_DIVIDER));
+        addBooks(unselectedLanguages);
+      }
+
+      FilterResults results = new FilterResults();
+      results.values = listItems;
+      results.count = listItems.size();
+      return results;
+    }
+
+    @Override
+    protected void publishResults(CharSequence constraint, FilterResults results) {
+      @SuppressWarnings("unchecked") List<ListItem> filtered = (List<ListItem>) results.values;
+      if (filtered != null) {
+        if (filtered.isEmpty()) {
+          addBooks(allBooks);
+        }
+      }
+      notifyDataSetChanged();
+    }
+  }
+
+  private class ListItem {
+    final Object data;
+    final int type;
+
+    ListItem(Object data, int type) {
       this.data = data;
       this.type = type;
     }
@@ -439,42 +439,5 @@ public class LibraryAdapter extends BaseAdapter {
     public int compare(Book book1, Book book2) {
       return book2.searchMatches - book1.searchMatches;
     }
-  }
-
-  public static class Language {
-    public String language;
-    public String languageLocalized;
-    public String languageCode;
-    public String languageCodeISO2;
-    public Boolean active;
-
-    Language(Locale locale, Boolean active) {
-      this.language = locale.getDisplayLanguage();
-      this.languageLocalized = locale.getDisplayLanguage(locale);
-      this.languageCode = locale.getISO3Language();
-      this.languageCodeISO2 = locale.getLanguage();
-
-      this.active = active;
-    }
-
-    public Language(String languageCode, Boolean active) {
-      this(new Locale(languageCode), active);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return ((Language) obj).language.equals(language) &&
-          ((Language) obj).active.equals(active);
-    }
-  }
-
-  private void saveNetworkLanguages() {
-    if (saveNetworkLanguageDisposable != null && !saveNetworkLanguageDisposable.isDisposed()) {
-      saveNetworkLanguageDisposable.dispose();
-    }
-    saveNetworkLanguageDisposable = Completable.fromAction(() -> networkLanguageDao.saveFilteredLanguages(languages))
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe();
   }
 }

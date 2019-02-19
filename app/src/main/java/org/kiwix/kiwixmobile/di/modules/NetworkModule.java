@@ -19,22 +19,20 @@ package org.kiwix.kiwixmobile.di.modules;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
-
-import org.kiwix.kiwixmobile.BuildConfig;
-import org.kiwix.kiwixmobile.network.KiwixService;
-import org.kiwix.kiwixmobile.network.UserAgentInterceptor;
-
-import javax.inject.Singleton;
-
 import dagger.Module;
 import dagger.Provides;
+import javax.inject.Singleton;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import org.kiwix.kiwixmobile.BuildConfig;
+import org.kiwix.kiwixmobile.data.remote.KiwixService;
+import org.kiwix.kiwixmobile.data.remote.UserAgentInterceptor;
 
 @Module public class NetworkModule {
 
-  public static String KIWIX_DOWNLOAD_URL = BuildConfig.KIWIX_DOWNLOAD_URL; //"http://download.kiwix.org/";
-  private final static String useragent = "kiwix-android-version:" + BuildConfig.VERSION_CODE;
+  private static final String KIWIX_DOWNLOAD_URL = BuildConfig.KIWIX_DOWNLOAD_URL;
+  //"http://download.kiwix.org/";
+  private final static String userAgent = "kiwix-android-version:" + BuildConfig.VERSION_CODE;
 
   @Provides @Singleton OkHttpClient provideOkHttpClient() {
     HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
@@ -42,7 +40,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
     return new OkHttpClient().newBuilder().followRedirects(true).followSslRedirects(true)
         .addNetworkInterceptor(logging)
-        .addNetworkInterceptor(new UserAgentInterceptor(useragent)).build();
+        .addNetworkInterceptor(new UserAgentInterceptor(userAgent)).build();
   }
 
   @Provides @Singleton KiwixService provideKiwixService(OkHttpClient okHttpClient) {
@@ -53,5 +51,4 @@ import okhttp3.logging.HttpLoggingInterceptor;
   ConnectivityManager provideConnectivityManager(Context context) {
     return (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
   }
-
 }

@@ -17,16 +17,17 @@
  */
 package org.kiwix.kiwixmobile.downloader;
 
-import org.kiwix.kiwixmobile.utils.StorageUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import org.kiwix.kiwixmobile.utils.StorageUtils;
 
 public class ChunkUtils {
 
+  @SuppressWarnings("SpellCheckingInspection")
   public static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz";
   public static final String ZIM_EXTENSION = ".zim";
-  public static final String PART = ".part";
+  public static final String PART = ".part.part";
   public static final long CHUNK_SIZE = 1024L * 1024L * 1024L * 2L;
 
   public static List<Chunk> getChunks(String url, long contentLength, int notificationID) {
@@ -36,18 +37,21 @@ public class ChunkUtils {
     return generateChunks(contentLength, url, fileNames, notificationID);
   }
 
-  private static List<Chunk> generateChunks(long contentLength, String url, String[] fileNames, int notificationID) {
+  private static List<Chunk> generateChunks(long contentLength, String url, String[] fileNames,
+      int notificationID) {
     List<Chunk> chunks = new ArrayList<>();
     long currentRange = 0;
     for (String zim : fileNames) {
       String range;
       if (currentRange + CHUNK_SIZE >= contentLength) {
-        range = String.format("%d-", currentRange);
-        chunks.add(new Chunk(range, zim, url, contentLength, notificationID, currentRange, contentLength));
+        range = String.format(Locale.US, "%d-", currentRange);
+        chunks.add(
+            new Chunk(range, zim, url, contentLength, notificationID, currentRange, contentLength));
         currentRange += CHUNK_SIZE + 1;
       } else {
-        range = String.format("%d-%d", currentRange, currentRange + CHUNK_SIZE);
-        chunks.add(new Chunk(range, zim, url, contentLength, notificationID, currentRange, currentRange + CHUNK_SIZE));
+        range = String.format(Locale.US, "%d-%d", currentRange, currentRange + CHUNK_SIZE);
+        chunks.add(new Chunk(range, zim, url, contentLength, notificationID, currentRange,
+            currentRange + CHUNK_SIZE));
         currentRange += CHUNK_SIZE + 1;
       }
     }
@@ -63,7 +67,7 @@ public class ChunkUtils {
 
   private static String[] getZimChunkFileNames(String fileName, int count) {
     if (count == 1) {
-      return new String[] { fileName + PART};
+      return new String[] { fileName + PART };
     }
     int position = fileName.lastIndexOf(".");
     String baseName = position > 0 ? fileName.substring(0, position) : fileName;

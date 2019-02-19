@@ -17,19 +17,14 @@
  */
 package org.kiwix.kiwixmobile.zim_manager.library_view;
 
-import android.content.Context;
 import android.util.Log;
-
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import javax.inject.Inject;
 import org.kiwix.kiwixmobile.base.BasePresenter;
-import org.kiwix.kiwixmobile.database.BookDao;
-import org.kiwix.kiwixmobile.database.KiwixDatabase;
+import org.kiwix.kiwixmobile.data.local.dao.BookDao;
+import org.kiwix.kiwixmobile.data.remote.KiwixService;
 import org.kiwix.kiwixmobile.downloader.DownloadFragment;
 import org.kiwix.kiwixmobile.library.entity.LibraryNetworkEntity;
-import org.kiwix.kiwixmobile.network.KiwixService;
-
-import javax.inject.Inject;
-
-import io.reactivex.android.schedulers.AndroidSchedulers;
 
 /**
  * Created by EladKeyshawn on 06/04/2017.
@@ -41,33 +36,28 @@ public class LibraryPresenter extends BasePresenter<LibraryViewCallback> {
   KiwixService kiwixService;
 
   @Inject
-  public LibraryPresenter() {
+  BookDao bookDao;
+
+  @Inject LibraryPresenter() {
   }
 
   void loadBooks() {
-    getMvpView().displayScanningContent();
-    kiwixService.getLibrary()
+    view.displayScanningContent();
+    compositeDisposable.add(kiwixService.getLibrary()
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(library -> getMvpView().showBooks(library.getBooks()), error -> {
+        .subscribe(library -> view.showBooks(library.getBooks()), error -> {
           String msg = error.getLocalizedMessage();
           Log.w("kiwixLibrary", "Error loading books:" + (msg != null ? msg : "(null)"));
-          getMvpView().displayNoItemsFound();
-        });
+          view.displayNoItemsFound();
+        }));
   }
 
-  void loadRunningDownloadsFromDb(Context context) {
-    BookDao bookDao = new BookDao(KiwixDatabase.getInstance(context));
+  void loadRunningDownloadsFromDb() {
     for (LibraryNetworkEntity.Book book : bookDao.getDownloadingBooks()) {
-      if (!DownloadFragment.mDownloads.containsValue(book)) {
+      if (!DownloadFragment.downloads.containsValue(book)) {
         book.url = book.remoteUrl;
-        getMvpView().downloadFile(book);
+        view.downloadFile(book);
       }
     }
   }
-
-  @Override
-  public void attachView(LibraryViewCallback view) {
-    super.attachView(view);
-  }
-
 }

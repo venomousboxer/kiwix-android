@@ -15,21 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.kiwix.kiwixmobile.tests;
 
-
 import android.Manifest;
-import android.support.test.espresso.Espresso;
-import android.support.test.espresso.IdlingPolicies;
-import android.support.test.espresso.ViewInteraction;
-import android.support.test.rule.ActivityTestRule;
-import android.support.test.runner.AndroidJUnit4;
-import android.support.test.rule.GrantPermissionRule;
-import android.test.suitebuilder.annotation.LargeTest;
 import android.util.Log;
-
-import com.squareup.spoon.Spoon;
-
+import androidx.test.espresso.IdlingPolicies;
+import androidx.test.espresso.IdlingRegistry;
+import androidx.test.espresso.ViewInteraction;
+import androidx.test.filters.LargeTest;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.rule.GrantPermissionRule;
+import androidx.test.runner.AndroidJUnit4;
+import com.schibsted.spain.barista.interaction.BaristaMenuClickInteractions;
+import com.schibsted.spain.barista.interaction.BaristaSleepInteractions;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -37,98 +37,98 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kiwix.kiwixmobile.R;
+import org.kiwix.kiwixmobile.main.MainActivity;
 import org.kiwix.kiwixmobile.utils.KiwixIdlingResource;
-import org.kiwix.kiwixmobile.zim_manager.ZimManageActivity;
 
-import java.util.concurrent.TimeUnit;
-
-import static android.support.test.espresso.Espresso.onData;
-import static android.support.test.espresso.Espresso.onView;
-import static android.support.test.espresso.action.ViewActions.click;
-import static android.support.test.espresso.action.ViewActions.longClick;
-import static android.support.test.espresso.action.ViewActions.swipeDown;
-import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
-import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withParent;
-import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static androidx.test.espresso.Espresso.onData;
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withParent;
+import static com.schibsted.spain.barista.assertion.BaristaVisibilityAssertions.assertDisplayed;
+import static com.schibsted.spain.barista.interaction.BaristaClickInteractions.clickOn;
+import static com.schibsted.spain.barista.interaction.BaristaSwipeRefreshInteractions.refresh;
+import static junit.framework.Assert.fail;
 import static org.hamcrest.Matchers.allOf;
+import static org.kiwix.kiwixmobile.testutils.TestUtils.TEST_PAUSE_MS;
+import static org.kiwix.kiwixmobile.testutils.TestUtils.allowPermissionsIfNeeded;
+import static org.kiwix.kiwixmobile.testutils.TestUtils.captureAndSaveScreenshot;
+import static org.kiwix.kiwixmobile.testutils.TestUtils.getResourceString;
 import static org.kiwix.kiwixmobile.testutils.TestUtils.withContent;
+import static org.kiwix.kiwixmobile.utils.StandardActions.deleteZimIfExists;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class DownloadTest {
 
+  private static final String KIWIX_DOWNLOAD_TEST = "kiwixDownloadTest";
   @Rule
-  public ActivityTestRule<ZimManageActivity> mActivityTestRule = new ActivityTestRule<>(
-      ZimManageActivity.class);
+  public ActivityTestRule<MainActivity> activityTestRule =
+      new ActivityTestRule<>(MainActivity.class);
   @Rule
-  public GrantPermissionRule readPermissionRule = GrantPermissionRule.grant(Manifest.permission.READ_EXTERNAL_STORAGE);
+  public GrantPermissionRule readPermissionRule =
+      GrantPermissionRule.grant(Manifest.permission.READ_EXTERNAL_STORAGE);
   @Rule
-  public GrantPermissionRule writePermissionRule = GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+  public GrantPermissionRule writePermissionRule =
+      GrantPermissionRule.grant(Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
   @BeforeClass
   public static void beforeClass() {
-    IdlingPolicies.setMasterPolicyTimeout(350, TimeUnit.SECONDS);
-    IdlingPolicies.setIdlingResourceTimeout(350, TimeUnit.SECONDS);
-    Espresso.registerIdlingResources(KiwixIdlingResource.getInstance());
+    IdlingPolicies.setMasterPolicyTimeout(180, TimeUnit.SECONDS);
+    IdlingPolicies.setIdlingResourceTimeout(180, TimeUnit.SECONDS);
+    IdlingRegistry.getInstance().register(KiwixIdlingResource.getInstance());
   }
 
   @Before
   public void setUp() {
-
   }
 
   @Test
   public void downloadTest() {
-    ViewInteraction appCompatTextView = onView(
-        allOf(withText("Device"), isDisplayed()));
-    appCompatTextView.perform(click());
+    BaristaSleepInteractions.sleep(TEST_PAUSE_MS);
+    BaristaMenuClickInteractions.clickMenu(getResourceString(R.string.menu_zim_manager));
+
+    clickOn(R.string.local_zims);
+
+    allowPermissionsIfNeeded();
+
+    deleteZimIfExists("ray_charles", R.id.zimfilelist);
+
+    clickOn(R.string.remote_zims);
 
     try {
-      onData(withContent("ray_charles")).inAdapterView(withId(R.id.zimfilelist)).perform(longClick());
-      onView(withId(android.R.id.button1)).perform(click());
+      clickOn(R.id.network_permission_button);
     } catch (RuntimeException e) {
-
+      Log.d(KIWIX_DOWNLOAD_TEST, "Failed to click Network Permission Button", e);
     }
 
-    ViewInteraction appCompatTextView2 = onView(
-        allOf(withText("Online"), isDisplayed()));
-    appCompatTextView2.perform(click());
-
-    try {
-      onView(withId(R.id.network_permission_button)).perform(click());
-      Log.d("kiwixDownloadTest", "Clicked Network Permission Button");
-    } catch (RuntimeException e) {
-      Log.d("kiwixDownloadTest", "Failed to click Network Permission Button", e);
-    }
-
-    Spoon.screenshot(mActivityTestRule.getActivity(), "Before-checking-for-ZimManager-Main-Activity");
+    captureAndSaveScreenshot("Before-checking-for-ZimManager-Main-Activity");
     ViewInteraction viewPager2 = onView(
         allOf(withId(R.id.container),
             withParent(allOf(withId(R.id.zim_manager_main_activity),
                 withParent(withId(android.R.id.content)))),
             isDisplayed()));
-    Spoon.screenshot(mActivityTestRule.getActivity(), "After-the-check-completed");
+    captureAndSaveScreenshot("After-the-check-completed");
 
-    onData(withContent("ray_charles")).inAdapterView(withId(R.id.library_list)).perform(click());
+    BaristaSleepInteractions.sleep(TEST_PAUSE_MS);
 
     try {
-      onView(withId(android.R.id.button1)).perform(click());
+      onData(withContent("ray_charles")).inAdapterView(withId(R.id.library_list));
+    } catch (Exception e) {
+      fail("Couldn't find downloaded file 'ray_charles'\n\nOriginal Exception:\n" +
+          e.getLocalizedMessage() + "\n\n");
+    }
+
+    deleteZimIfExists("ray_charles", R.id.library_list);
+
+    assertDisplayed(R.string.local_zims);
+    clickOn(R.string.local_zims);
+
+    try {
+      refresh(R.id.zim_swiperefresh);
     } catch (RuntimeException e) {
+      Log.w(KIWIX_DOWNLOAD_TEST, "Failed to refresh ZIM list: " + e.getLocalizedMessage());
     }
-
-    ViewInteraction appCompatTextView3 = onView(
-        allOf(withText("Device"), isDisplayed()));
-    appCompatTextView3.perform(click());
-
-    try {
-      Thread.sleep(500);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-
-    onView(withId(R.id.zim_swiperefresh))
-        .perform(swipeDown());
 
 /*
 Commented out the following as it uses another Activity.
@@ -140,13 +140,11 @@ this functionality in the tests.
     onView(withText("Get Content")).perform(click());
 */
 
-    onData(withContent("ray_charles")).inAdapterView(withId(R.id.zimfilelist)).perform(longClick());
-    onView(withId(android.R.id.button1)).perform(click());
+    deleteZimIfExists("ray_charles", R.id.zimfilelist);
   }
 
   @After
   public void finish() {
-    Espresso.unregisterIdlingResources(KiwixIdlingResource.getInstance());
+    IdlingRegistry.getInstance().unregister(KiwixIdlingResource.getInstance());
   }
-
 }

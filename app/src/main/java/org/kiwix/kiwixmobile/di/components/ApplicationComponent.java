@@ -17,41 +17,38 @@
  */
 package org.kiwix.kiwixmobile.di.components;
 
-import org.kiwix.kiwixmobile.KiwixMobileActivity;
-import org.kiwix.kiwixmobile.ZimContentProvider;
-import org.kiwix.kiwixmobile.bookmarks_view.BookmarksActivity;
+import dagger.Component;
+import javax.inject.Singleton;
+import org.kiwix.kiwixmobile.KiwixApplication;
+import org.kiwix.kiwixmobile.base.BaseFragment;
+import org.kiwix.kiwixmobile.data.DataModule;
+import org.kiwix.kiwixmobile.data.ZimContentProvider;
 import org.kiwix.kiwixmobile.di.modules.ApplicationModule;
 import org.kiwix.kiwixmobile.di.modules.JNIModule;
 import org.kiwix.kiwixmobile.di.modules.NetworkModule;
-import org.kiwix.kiwixmobile.downloader.DownloadFragment;
 import org.kiwix.kiwixmobile.downloader.DownloadService;
 import org.kiwix.kiwixmobile.library.LibraryAdapter;
-import org.kiwix.kiwixmobile.search.SearchActivity;
+import org.kiwix.kiwixmobile.main.KiwixWebView;
+import org.kiwix.kiwixmobile.search.AutoCompleteAdapter;
 import org.kiwix.kiwixmobile.settings.KiwixSettingsActivity;
-import org.kiwix.kiwixmobile.views.AutoCompleteAdapter;
-import org.kiwix.kiwixmobile.views.web.KiwixWebView;
-import org.kiwix.kiwixmobile.zim_manager.ZimManageActivity;
 import org.kiwix.kiwixmobile.zim_manager.fileselect_view.ZimFileSelectFragment;
 import org.kiwix.kiwixmobile.zim_manager.library_view.LibraryFragment;
-
-import javax.inject.Singleton;
-
-import dagger.Component;
 
 @Singleton
 @Component(modules = {
     ApplicationModule.class,
     NetworkModule.class,
     JNIModule.class,
+    DataModule.class
 })
 public interface ApplicationComponent {
-  void inject(KiwixMobileActivity activity);
+  void inject(KiwixApplication application);
 
   void inject(DownloadService service);
 
   void inject(LibraryFragment libraryFragment);
 
-  void inject(BookmarksActivity bookmarksActivity);
+  void inject(BaseFragment baseFragment);
 
   void inject(ZimFileSelectFragment zimFileSelectFragment);
 
@@ -59,17 +56,9 @@ public interface ApplicationComponent {
 
   void inject(LibraryAdapter libraryAdapter);
 
-  void inject(SearchActivity searchActivity);
-
-  void inject(ZimManageActivity zimManageActivity);
-
   void inject(KiwixWebView kiwixWebView);
 
-  void inject(KiwixSettingsActivity kiwixSettingsActivity);
-
   void inject(KiwixSettingsActivity.PrefsFragment prefsFragment);
-
-  void inject(DownloadFragment downloadFragment);
 
   void inject(AutoCompleteAdapter autoCompleteAdapter);
 }

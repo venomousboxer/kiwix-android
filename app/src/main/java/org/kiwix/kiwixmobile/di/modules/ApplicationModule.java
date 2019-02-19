@@ -19,32 +19,67 @@ package org.kiwix.kiwixmobile.di.modules;
 
 import android.app.NotificationManager;
 import android.content.Context;
-
-import org.kiwix.kiwixmobile.KiwixApplication;
-import org.kiwix.kiwixmobile.utils.BookUtils;
-
-import javax.inject.Singleton;
-
 import dagger.Module;
 import dagger.Provides;
+import dagger.android.AndroidInjectionModule;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+import javax.inject.Singleton;
+import org.kiwix.kiwixmobile.KiwixApplication;
+import org.kiwix.kiwixmobile.di.qualifiers.Computation;
+import org.kiwix.kiwixmobile.di.qualifiers.IO;
+import org.kiwix.kiwixmobile.di.qualifiers.MainThread;
+import org.kiwix.kiwixmobile.utils.BookUtils;
+import org.kiwix.kiwixmobile.utils.LanguageUtils;
 
-@Module public class ApplicationModule {
+@Module(includes = { ActivityBindingModule.class, AndroidInjectionModule.class })
+public class ApplicationModule {
   private final KiwixApplication application;
 
   public ApplicationModule(KiwixApplication application) {
     this.application = application;
   }
 
-  @Provides @Singleton Context provideApplicationContext() {
+  @Provides
+  @Singleton
+  Context provideApplicationContext() {
     return this.application;
   }
 
-  @Provides @Singleton NotificationManager provideNotificationManager(Context context) {
+  @Provides
+  @Singleton
+  NotificationManager provideNotificationManager(Context context) {
     return (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
   }
 
-  @Provides @Singleton
-  BookUtils provideBookUtils() {
-    return new BookUtils();
+  @Provides
+  @Singleton
+  BookUtils provideBookUtils(LanguageUtils.LanguageContainer container) {
+    return new BookUtils(container);
+  }
+
+  @Provides
+  @Singleton
+  LanguageUtils.LanguageContainer provideLanguageContainer() {
+    return new LanguageUtils.LanguageContainer();
+  }
+
+  @IO
+  @Provides
+  public Scheduler provideIoThread() {
+    return Schedulers.io();
+  }
+
+  @MainThread
+  @Provides
+  public Scheduler provideMainThread() {
+    return AndroidSchedulers.mainThread();
+  }
+
+  @Computation
+  @Provides
+  public Scheduler provideComputationThread() {
+    return Schedulers.computation();
   }
 }
